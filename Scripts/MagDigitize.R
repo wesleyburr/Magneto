@@ -3,16 +3,16 @@
 MagDigitize <- function(file_location = file_location,image_name = FALSE, numTraces = 2, withplots=TRUE,
                         optimization = TRUE, saveresults = TRUE){
 
-  if(optimization == TRUE){
-    source("~/Magneto2020/Scripts/BreakoutType2.R")
-  }else{
-    source("~/Magneto2020/Scripts/BreakoutType1.R")
-  }
+    if(optimization == TRUE){
+      source("~/Magneto2020/Scripts/BreakoutType2.R")
+      }else{
+      source("~/Magneto2020/Scripts/BreakoutType1.R")
+    }
 
 
 
 
-  source("~/magneto/Scripts/MarkW/custom_functions.R")
+  source("~/Magneto2020/Scripts/CustomFunctions.R")
 
   library("tiff") # for reading and writing tiff files
   library("multitaper") # used in Decon
@@ -491,7 +491,7 @@ MagDigitize <- function(file_location = file_location,image_name = FALSE, numTra
     b2Before <- baseline2
 
     baseline1 <- try(Remove_ends(baseline1))
-    baseline2 <- try(remove_ends(baseline2))
+    baseline2 <- try(Remove_ends(baseline2))
 
     #test for baseline removal (not what we wanted here)
     if(sum(!is.na(baseline1)) < sum(!is.na(b1Before))-1000){
@@ -593,7 +593,7 @@ MagDigitize <- function(file_location = file_location,image_name = FALSE, numTra
       Data_Out <- cbind(Data_Length,Trace1,Baseline1)
     }
     #======================================================= CSV
-    if(saveresults==TRUE){
+    if(saveresults == TRUE){
       filename <- file.names[O]
       #
       # name_of_file <- print(paste0("Digitized_Data/DWMark/",filename,".csv"))
