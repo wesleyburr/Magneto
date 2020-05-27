@@ -783,46 +783,69 @@ TIS <- function(file_location = 0, image_name = FALSE,
 
     tally <- 0
     jj <- 0
+
     flag111 <- FALSE
     for(i in 1:length(Trace2)){
-      if(is.na(Trace2[i])==FALSE){
+      if(is.na(Trace2[i]) == FALSE){
         flag111 <- TRUE
       }
-      if(flag111 == TRUE & is.na(Trace2[i])==TRUE){
-        tally <- tally +1
+      if(flag111 == TRUE & is.na(Trace2[i]) == TRUE){
+        tally <- tally + 1
       }
-      if(tally >= 10 & is.na(Trace2[i])==FALSE){
+
+      #debug
+      if(tally >= 10 & is.na(Trace2[i]) == FALSE){
+        browser()
+      }
+      #debug
+
+      if(tally >= 10 & is.na(Trace2[i]) == FALSE){
         gap_end <- Trace2[i]
-        gap_start <- Trace2[i-1-tally]
-        if(gap_start > gap_end){
-          for(j in (i-tally):(i-1)){
+        startLocation <- i - 1 - tally
+
+## prevents the case of small gaps with single numbers causing errors with gap_start = NaN
+## can see at AGC-D-18980111-19010529 Trace2[1000:1100]
+        k <- 0
+        while (is.na(Trace2[startLocation]) == TRUE & k < 10) {
+          startLocation <- startLocation - 1
+          k <- k + 1
+        }
+        assertthat::are_equal(k,10) #Added to make sure that this never happens
+
+        gap_start <- Trace2[startLocation]
+        realValueStart  <- i - tally - k
+        lastNaN <- i - 1
+        if (gap_start > gap_end) {
+          for (j in (realValueStart):(lastNaN)) {
             jj <- jj + 1
-            Trace2[j] <- -((gap_start - gap_end)/(i - (i-1-tally)))*jj + gap_start
+            Trace2[j] <- -((gap_start - gap_end)/(i - (startLocation)))*jj + gap_start
           }
         }
-        if(gap_start < gap_end){
-          for(j in (i-tally):(i-1)){
+        if (gap_start < gap_end) {
+          for (j in (realValueStart):(lastNaN)) {
             jj <- jj + 1
-            Trace2[j] <- ((gap_end-gap_start)/(i - (i-1-tally)))*jj + gap_start
+            Trace2[j] <- ((gap_end - gap_start)/(i - (startLocation)))*jj + gap_start
           }
         }
-        if(gap_start == gap_end){
-          for(j in (i-tally):(i-1)){
+        if (gap_start == gap_end) {
+          for (j in (realValueStart):(lastNaN)) {
 
             Trace2[j] <- gap_start
           }
         }
         tally <- 0
         jj <- 0
+        k <- 0
+        startLocation <- 0
       }
     }
 
 
-    if((mean(Trace1,na.rm = TRUE)-mean(Baseline1,na.rm = TRUE))<=150){
-      Baseline1 <- Baseline1-(Peaks[3,3]-Peaks[1,3])
+    if ((mean(Trace1,na.rm = TRUE) - mean(Baseline1,na.rm = TRUE)) <= 150) {
+      Baseline1 <- Baseline1 - (Peaks[3,3] - Peaks[1,3])
     }
-    if((mean(Trace2,na.rm = TRUE)-mean(Baseline2,na.rm = TRUE))<=150){
-      Baseline2 <- Baseline2-(Peaks[4,3]-Peaks[2,3])
+    if ((mean(Trace2,na.rm = TRUE) - mean(Baseline2,na.rm = TRUE)) <= 150) {
+      Baseline2 <- Baseline2 - (Peaks[4,3] - Peaks[2,3])
     }
 
     Data_Out <- cbind(Data_Length,Trace1,Trace2,Baseline1,Baseline2)
