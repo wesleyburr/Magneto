@@ -3,3 +3,5 @@ DigitizedPlots/
 .Rproj.user/
 .Rproj.user
 Normal_Days_Per_month/
+*.tif
+

@@ -793,12 +793,6 @@ TIS <- function(file_location = 0, image_name = FALSE,
         tally <- tally + 1
       }
 
-      #debug
-      if(tally >= 10 & is.na(Trace2[i]) == FALSE){
-        browser()
-      }
-      #debug
-
       if(tally >= 10 & is.na(Trace2[i]) == FALSE){
         gap_end <- Trace2[i]
         startLocation <- i - 1 - tally
@@ -860,7 +854,7 @@ TIS <- function(file_location = 0, image_name = FALSE,
     filename <- file.names[O]
 
     #name_of_file <- print(paste0("Digitized_Data/TIS/",filename,".csv"))
-    name_of_file <- print(paste0("Normal_Days_Per_month",filename,".csv"))
+    name_of_file <- print(paste0("Normal_Days_Per_month/",filename,".csv"))
 
     write.csv(Data_Out,file = name_of_file, row.names = FALSE)
 
