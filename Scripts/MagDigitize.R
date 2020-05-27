@@ -1,12 +1,13 @@
 
 
-MagDigitize <- function(file_location = file_location,image_name = FALSE, numTraces = 2, withplots=TRUE,
+MagDigitize <- function(file_location = file_location, image_name = FALSE, numTraces = 2, withplots=TRUE,
                         optimization = TRUE, saveresults = TRUE){
 
-    if(optimization == TRUE){
-      source("~/Magneto2020/Scripts/BreakoutType2.R")
-      }else{
-      source("~/Magneto2020/Scripts/BreakoutType1.R")
+  if(optimization == TRUE){
+      source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+      }
+  else{
+      source("~/Magneto2020/Scripts/BreakoutNoOptimization.R")
     }
 
 
@@ -105,7 +106,7 @@ MagDigitize <- function(file_location = file_location,image_name = FALSE, numTra
 
     # Some of the scanned images have areas that capture the background of the scanner.
     # This often appears in a solid black box running along a side if the image.
-    if(max(rowSums(mgdat))==max(rowSums(mgdat)[(length(rowSums(mgdat))-100):length(rowSums(mgdat))])){
+    if(max(rowSums(mgdat)) == max(rowSums(mgdat)[(length(rowSums(mgdat))-100):length(rowSums(mgdat))])){
       check_scan <- rowSums(mgdat)
       aaa<-quantile(check_scan,0.95)
       #plot(check_scan,type = "l")

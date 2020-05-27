@@ -17,8 +17,8 @@ MagDigitize(file_location = Image.Group ,image_name = 0, withplots = FALSE ,opti
 
 
 # Trace Identification through separation
-#source("Scripts/MarkW/Hope_4Intersection1907.R")
-#TIS(file_location = Image.Group, image_name = 0, withplots = TRUE, optimization = TRUE, saveresults = TRUE, bright = FALSE)
+source("~/Magneto2020/Scripts/TIS.R")
+TIS(file_location = Image.Group, image_name = 0, withplots = TRUE, optimization = TRUE, saveresults = TRUE, bright = FALSE)
 
 # Main Scripts ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Main Scripts
 
