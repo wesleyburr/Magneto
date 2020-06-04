@@ -1,0 +1,66 @@
+---
+title: "TestingSpace"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+ library("tiff")
+  library("pracma")
+  library("data.table")
+  library("functional")
+  library("OpenImageR")
+
+  DigitizationTODO <- read.csv("~/Magneto2020/TestTable.csv", header = FALSE)
+  names(DigitizationTODO) <- c("ImagePath", "ImageName", "DigitizedYet", "DigitizationPath", "DigitizationName", "ErrorWhenDigitized")
+```
+  ##Input checking --------------------------------------------------------------------
+  #if (is.null(ImageDigitizationDFnx6) | is.null(PWD)) {
+   # Error <- "Not all Parameters are filled in, please fill in and try again"
+    #return(Error)
+  #}
+  #if (dim.data.frame(ImageDigitizationDFnx6)[2] != 6) {
+   # Error <- "Your dataframe has the wrong dimentions, should be 6 columns with 3rd being TRUE or FALSE"
+    #return(Error)
+  #}
+
+  ## If all inputs are good, continue
+
+#  output <- c(print(PWD),
+#              print(head(ImageDigitizationDFnx6)),
+#              print(str(ImageDigitizationDFnx6)))
+#return(output)
+```{r}
+  ## Breaking down the file locations -------------------------------------------------
+  for (i in 1:length(DigitizationTODO[,1])) {
+
+    if (DigitizationTODO$DigitizedYet[i] == "True") {
+      print(DigitizationTODO$ImageName)
+
+    }
+    else if(DigitizationTODO$DigitizedYet[i] == "False"){
+      Image.Group <- DigitizationTODO$ImagePath[i]
+      print(Image.Group)
+    }
+
+    }
+  
+```
+
+```{r}
+for (i in 1:length(DigitizationTODO[,1])) {
+if (DigitizationTODO$DigitizedYet[i] == "True") {
+      print(paste0(DigitizationTODO$ImageName[i], " has been digitized"))
+
+    }
+if(DigitizationTODO$DigitizedYet[i] == "False"){
+      Image.Group <- DigitizationTODO$ImagePath[i]
+      print(Image.Group,max.levels = 0)
+    }
+
+}
+
+
+```
