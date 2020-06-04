@@ -20,16 +20,20 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL,
 
 
 imagePath <- vector()
+imageName <- vector()
   ## Breaking down the file locations -------------------------------------------------
-  for (i in 1:length(ImageDigitizationDFnx6[,1])) {
+  for (i in 1:3){# 1:length(ImageDigitizationDFnx6[,1])) {
     if (ImageDigitizationDFnx6$DigitizedYet[i] == "True") {
       print(paste0(ImageDigitizationDFnx6$ImageName[i], " has been digitized"))
 
     }
     if (ImageDigitizationDFnx6$DigitizedYet[i] == "False") {
-      imagePath[i] <- ImageDigitizationDFnx6$ImagePath[i]
-      print(imagePath[i],max.levels = 0)
 
+      oneImagePath <- as.character(ImageDigitizationDFnx6$ImagePath[i])
+      oneImageName <- as.character(ImageDigitizationDFnx6$ImageName[i])
+      source("~/Magneto2020/Scripts/TISForAutomation.R")
+      TISForAutomation(file_location = oneImagePath, image_name = oneImageName , withplots = withplots,
+                       optimization = optimization, saveresults = saveresults, bright = bright)
 
 
 
@@ -39,22 +43,12 @@ imagePath <- vector()
   ## TIS For all different paths -------------------------------------------------------
 
   for (i in 1:length(imagePath)) {
-    if (i = 1) {
+    oneImagePath <- imagePath[i]
+    oneImageName <- imageName[i]
       #Trace Identification through separation
-      source("~/Magneto2020/Scripts/TISForAutomation.R")
-      TISForAutomation(file_location = imagePath, image_name = 0, withplots = withplots,
-          optimization = optimization, saveresults = saveresults, bright = bright)
-      }
-    else if (imagePath[i] != imagePath[i - 1]) {
-      #Trace Identification through separation
-      source("~/Magneto2020/Scripts/TISForAutomation.R")
-      TISForAutomation(file_location = imagePath, image_name = 0, withplots = withplots,
-          optimization = optimization, saveresults = saveresults, bright = bright)
-      }
-    else{
 
-      }
     }
+
 
 }
 

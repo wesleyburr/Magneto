@@ -4,6 +4,8 @@
 # In particular -> Deconvolution, for time series smoothing
 # The strategy is to separate the traces, and baselines
 
+
+
 TIS <- function(file_location = 0, image_name = FALSE,
                 numTraces = 2, withplots=TRUE,optimization=TRUE,saveresults=TRUE,bright=FALSE){
 
@@ -18,7 +20,7 @@ TIS <- function(file_location = 0, image_name = FALSE,
   ## Setting the Scene ##
   print("===== Loading Image, and applying Decon. =====")
   #mag1 <- readTIFF("Normal_Days_Per_month/AGC-V-19140901-19140903.tif")
-  #mag1 <- readTIFF("Images/AGC-D-18980113-18980115.tif")
+  #mag1 <- readTIFF("~/magneto/Images/AGC-D-18980113-18980115.tif")
   #mag1 <- readTIFF("Images/AGC-D-19000308-19000310.tif")
   #mag1 <- readTIFF("Images/AGC-D-18980228-18980302.tif")
   #mag1 <- readTIFF("Images/AGC-D-18980228-18980302.tif") #Single Intersection, does not cross (lower)
@@ -38,6 +40,7 @@ TIS <- function(file_location = 0, image_name = FALSE,
   image_import <- function(image,file_loc){readTIFF(paste0(file_loc,"/",image))}
 
   if(image_name == FALSE){
+
     number_of_Images <- length(file.names)
   }else{
     number_of_Images <- 1
