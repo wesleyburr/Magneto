@@ -49,26 +49,31 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
   ## Script --------------------------------------------------------------------
 
 
-  workingImage <- image_import(image = image_name,file_loc = file_location)
-  print(paste0("The minimum value in image is: ", min(workingImage)))
-  print(paste0("The maximum value in image is: ",max(workingImage)))
+  mag1 <- image_import(image = image_name,file_loc = file_location)
+  print(paste0("The minimum value in image is: ", min(mag1)))
+  print(paste0("The maximum value in image is: ",max(mag1)))
 
 
-  if (class(workingImage) == "array") {
-    classArrayEdit(workingImage)
+  if (class(mag1) == "array") {
+    classArrayEdit(mag1)
     }
   else if (bright == TRUE) {
 
-    brightImages(workingImage)
+    brightImages(mag1)
     }
     else{
 
     }
 
 
-  workingImage <- verticalImageCheck(workingImage)
+  mag1 <- verticalImageCheck(mag1)
 
-  writeTIFF(workingImage,"testing1_auto.tif")
+  ## lets us check if the image has the correct contrast
+  writeTIFF(mag1,"testing1_auto.tif")
 
+  mag2 <- t( apply( mag1, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+
+  print("")
+  writeTIFF(mag2,"testing2_auto.tif")
 
 }

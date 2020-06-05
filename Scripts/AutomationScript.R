@@ -40,14 +40,7 @@ imageName <- vector()
     }
   }
 
-  ## TIS For all different paths -------------------------------------------------------
 
-  for (i in 1:length(imagePath)) {
-    oneImagePath <- imagePath[i]
-    oneImageName <- imageName[i]
-      #Trace Identification through separation
-
-    }
 
 
 }
