@@ -26,10 +26,21 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL,
 
   ## If all inputs are good, continue
 
+  ## Functions ------------------------------------------------------------------------
+  yearChecking <- function(magnetogram){
+
+    splitMag <- strsplit(magnetogram, "-")
+    yearMonthDay <- splitMag[[1]][4]
+    separating <- strsplit(yearMonthDay,"")
+    year <- paste0(separating[[1]][1], separating[[1]][2], separating[[1]][3], separating[[1]][4])
+    return(year)
+  }
+
+  ## Selecting one year ---------------------------------------------------------------
 
 
   ## Breaking down the file locations -------------------------------------------------
-  for (i in 1:3) {# 1:length(ImageDigitizationDFnx6[,1])) {
+  for (i in 1:3) {# oneYear)) {
     if (ImageDigitizationDFnx6$DigitizedYet[i] == "True") {
       print(paste0(ImageDigitizationDFnx6$ImageName[i], " has been digitized"))
       browser()

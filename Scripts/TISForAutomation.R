@@ -126,7 +126,16 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
   }
 }
 
+plot(rowSums, type = "l", col = "navy")
+Peaks <- findpeaks(rowSums, npeaks = 4, threshold = threshold, sortstr = FALSE)
+points(Peaks[, 2], Peaks[, 1], pch = 20, col = "maroon")
+length(Peaks)
 
+first_peak_start <- Peaks[1,3]
+first_peak_end <- Peaks[1,4]
+
+second_peak_start <- try(Peaks[2,3])
+second_peak_end <- try(Peaks[2,4])
 
 
 
