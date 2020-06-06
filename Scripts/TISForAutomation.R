@@ -46,6 +46,53 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
     return(retVal)
   }
 
+  yearChecking <- function(magnetogram){
+    browser()
+    splitMag <- strsplit(magnetogram, "-")
+    yearMonthDay <- splitMag[[1]][3]
+    separating <- strsplit(yearMonthDay,"")
+    year <- paste(separating[1], separating[2], separating[3], separating[4])
+    return(year)
+  }
+
+  meanPeaks <- function(magnetogram){
+    magnetogram[0:100, ] <- mean(magnetogram)
+    magnetogram[(nrow(magnetogram) - 60):(nrow(magnetogram)),] <- mean(magnetogram)
+    magnetogram[magnetogram < 0] <- 0
+
+    col_sums <- colSums(magnetogram)
+    row_sums <- rowSums(magnetogram)
+    threshold <- (0.8*mean(row_sums))
+    return(c(col_sums,row_sums,threshold,magnetogram))
+  }
+
+  identifyPeaks <- function(magnetogram1, magnetogram2, brightness){
+
+    meanPkData <- meanPeaks(magnetogram = magnetogram2)
+    col_sums <- meanPkData[1]
+    row_sums <- meanPkData[2]
+    threshold <- meanPkData[3]
+    magnetogram2 <- meanPkData[4]
+
+    if (bright == TRUE) {
+
+      magnetogram1[magnetogram1 < (quantile(magnetogram1,0.90))] <- 0
+      magnetogram1[magnetogram1 > 0] <- 1
+
+      print("")
+      print("===== Identify Peaks With Brightness =====")
+
+      meanPkData <- meanPeaks(magnetogram = magnetogram2)
+      col_sums <- meanPkData[1]
+      row_sums <- meanPkData[2]
+      threshold <- meanPkData[3]
+      magnetogram2 <- meanPkData[4]
+
+
+    }
+    return(c(col_sums,row_sums,threshold,magnetogram1,magnetogram2))
+  }
+
   ## Script --------------------------------------------------------------------
 
 
@@ -76,4 +123,64 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
   print("")
   writeTIFF(mag2,"testing2_auto.tif")
 
+  print("===== Preprocessing for mag1 =====")
+
+  ## Checking the year of the image
+
+  year <- yearChecking(image_name)
+
+  ## Depending on the year, what to do -----------------------------------------------------
+
+  if (as.numeric(year) <= 1900 ) {
+    if (bright == FALSE) {
+      browser()
+      mag1[mag1 < (1 - mean(mag1, na.rm = TRUE))] <- 0
+      mag1[mag1 > 0] <- 1
+      writeTIFF(mag1,"testing3_auto.tif")
+    }
+  }
+  else{browser()}
+
+  print("")
+  print("===== Identify Peaks =====")
+
+
+  peaksData <- identifyPeaks(mag1, mag2, brightness = bright)
+  col_sums <- peaksData[1]
+  row_sums <- peaksData[2]
+  threshold <- peaksData[3]
+  magnetogram1 <- peaksData[4]
+  magnetogram2 <- peaksData[5]
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

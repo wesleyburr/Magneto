@@ -6,6 +6,14 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL,
   library("functional")
   library("OpenImageR")
 
+  ##Functions -----------------------------------------------------------------------
+
+  imageChecking <- function(imageName){
+    splitMag <- strsplit(imageName, "-")
+    firstThing <- splitMag[[1]][1]
+    return(firstThing)
+  }
+
   ##Input checking --------------------------------------------------------------------
   if (is.null(ImageDigitizationDFnx6) | is.null(PWD)) {
     Error <- "Not all Parameters are filled in, please fill in and try again"
@@ -19,31 +27,39 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL,
   ## If all inputs are good, continue
 
 
-imagePath <- vector()
-imageName <- vector()
+
   ## Breaking down the file locations -------------------------------------------------
   for (i in 1:3){# 1:length(ImageDigitizationDFnx6[,1])) {
     if (ImageDigitizationDFnx6$DigitizedYet[i] == "True") {
       print(paste0(ImageDigitizationDFnx6$ImageName[i], " has been digitized"))
 
     }
-    if (ImageDigitizationDFnx6$DigitizedYet[i] == "False") {
-
+    if (ImageDigitizationDFnx6$DigitizedYet[i] == "False"){
       oneImagePath <- as.character(ImageDigitizationDFnx6$ImagePath[i])
       oneImageName <- as.character(ImageDigitizationDFnx6$ImageName[i])
-      source("~/Magneto2020/Scripts/TISForAutomation.R")
-      TISForAutomation(file_location = oneImagePath, image_name = oneImageName , withplots = withplots,
+
+      firstPartOfName <- imageChecking(oneImageName)
+
+      if(firstPartOfName == "AGC"){
+        source("~/Magneto2020/Scripts/TISForAutomation.R")
+        TISForAutomation(file_location = oneImagePath, image_name = oneImageName , withplots = withplots,
                        optimization = optimization, saveresults = saveresults, bright = bright)
-
-
-
+      }
+      else{
+        ImageDigitizationDFnx6$DigitizedYet[i] == "NotAnImage"
+      }
+    }
+    else{
+      print("All Of The Images Have Been Digitized!")
     }
   }
 
-
-
-
 }
+
+
+
+
+
 
 
 
