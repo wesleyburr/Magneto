@@ -64,3 +64,28 @@ if(DigitizationTODO$DigitizedYet[i] == "False"){
 
 
 ```
+
+##for the year checking stuff
+
+ yearChecking <- function(magnetogram){
+
+    splitMag <- strsplit(magnetogram, "-")
+    yearMonthDay <- splitMag[[1]][4]
+    separating <- strsplit(yearMonthDay,"")
+    year <- paste0(separating[[1]][1], separating[[1]][2], separating[[1]][3], separating[[1]][4])
+    return(year)
+  }
+
+ year <- yearChecking(image_name)
+
+  ## Depending on the year, what to do/ preprocessing -----------------------------------------------------
+
+  if (as.numeric(year) <= 1900 ) {
+    if (bright == FALSE) {
+      browser()
+      mag1[mag1 < (1 - mean(mag1, na.rm = TRUE))] <- 0
+      mag1[mag1 > 0] <- 1
+      writeTIFF(mag1,"testing3_auto.tif")
+    }
+  }
+  else{}

@@ -76,6 +76,7 @@ TIS <- function(file_location = 0, image_name = FALSE,
     # Some images have been scaned vertically, therefore to remain consistent..
     if(ncol_mag1 < nrow_mag1){
       mag1 <- apply(mag1,1,rev)
+      browser()
     }
 
     writeTIFF(mag1,"testing1.tif")
@@ -120,6 +121,7 @@ TIS <- function(file_location = 0, image_name = FALSE,
       col_sums <- colSums(mag2)
       row_sums <- rowSums(mag2)
       threshold <- (0.8*mean(row_sums))
+      browser()
     }
     if(bright==TRUE){
 
@@ -143,6 +145,7 @@ TIS <- function(file_location = 0, image_name = FALSE,
       col_sums <- colSums(mag2)
       row_sums <- rowSums(mag2)
       threshold <- (0.8*mean(row_sums))
+      browser()
 
     }
 

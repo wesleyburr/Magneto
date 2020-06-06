@@ -29,18 +29,18 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL,
 
 
   ## Breaking down the file locations -------------------------------------------------
-  for (i in 1:3){# 1:length(ImageDigitizationDFnx6[,1])) {
+  for (i in 1:3) {# 1:length(ImageDigitizationDFnx6[,1])) {
     if (ImageDigitizationDFnx6$DigitizedYet[i] == "True") {
       print(paste0(ImageDigitizationDFnx6$ImageName[i], " has been digitized"))
-
+      browser()
     }
-    if (ImageDigitizationDFnx6$DigitizedYet[i] == "False"){
+    if (ImageDigitizationDFnx6$DigitizedYet[i] == "False") {
       oneImagePath <- as.character(ImageDigitizationDFnx6$ImagePath[i])
       oneImageName <- as.character(ImageDigitizationDFnx6$ImageName[i])
 
       firstPartOfName <- imageChecking(oneImageName)
 
-      if(firstPartOfName == "AGC"){
+      if (firstPartOfName == "AGC") {
         source("~/Magneto2020/Scripts/TISForAutomation.R")
         TISForAutomation(file_location = oneImagePath, image_name = oneImageName , withplots = withplots,
                        optimization = optimization, saveresults = saveresults, bright = bright)
@@ -49,9 +49,7 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL,
         ImageDigitizationDFnx6$DigitizedYet[i] == "NotAnImage"
       }
     }
-    else{
-      print("All Of The Images Have Been Digitized!")
-    }
+
   }
 
 }
