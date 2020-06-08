@@ -89,3 +89,145 @@ if(DigitizationTODO$DigitizedYet[i] == "False"){
     }
   }
   else{}
+  
+  
+  
+  
+## Start of brightness test ------------------------------------------------------------------------------  
+  
+```{r}
+DigitizationTODO <- read.csv("~/Magneto2020/FinalTable.csv", header = FALSE, stringsAsFactors = FALSE)
+names(DigitizationTODO) <- c("ImagePath", "ImageName", "DigitizedYet", "DigitizationPath", "DigitizationName", "ErrorWhenDigitized")
+
+image_import <- function(image,file_loc){
+  readTIFF(paste0(file_loc,"/",image))
+}
+imageChecking <- function(imageName,locationToCheck){
+  splitMag <- strsplit(imageName, "-")
+  firstThing <- splitMag[[1]][locationToCheck]
+  return(firstThing)
+}
+isTiff <- function(imageName){
+  splitMag <- strsplit(imageName, "-")
+  lastStringInSplit <- strsplit(last(splitMag[[1]]), "")
+  lastLetter <- last(lastStringInSplit[[1]])
+  if (lastLetter == "f") {
+    return(TRUE)
+  }
+  else{
+    return(FALSE)
+  }
+}
+
+
+i = 1
+vec <- vector()
+counter <- 0
+sam <- sample(1:39266, size = 1000,replace = FALSE)
+for (i in sam) {
+  counter <- counter + 1
+  imageName <-  as.character(DigitizationTODO$ImageName[i])
+  filePath <- DigitizationTODO$ImagePath[i]
+  firstPartOfName <- imageChecking(imageName, 1)
+  tiffBool <- isTiff(imageName)
+
+  if (firstPartOfName == "AGC") {
+    if (tiffBool == TRUE) { # means that it is a .tiff file
+      mag <- image_import(imageName,filePath)
+      vec[counter] <- mean(mag)
+     
+    }
+    else {
+      DigitizationTODO$ErrorWhenDigitized[i] <- "Not a tiff"
+      DigitizationTODO$DigitizedYet[i] <- "Not tiff"
+      vec[counter] <- 0
+
+    }
+  }
+  else{
+    DigitizationTODO$ErrorWhenDigitized[i] <- "Not An Image"
+    vec[counter] <- 0
+
+
+  }
+}
+```
+
+```{r}
+for (i in 1:1000){
+  if(vec[i] > 0.8){
+    print(c(vec[i],i))
+  }
+}
+sam[19]
+```
+
+  
+```{r}
+hist(vec, breaks = 100)
+mean(vec)
+summary(vec)
+```
+```{r}
+j <- 193 #55
+mag1193 <- image_import(DigitizationTODO$ImageName[j],DigitizationTODO$ImagePath[j])
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+mag2193 <- t( apply( mag1193, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+
+
+mag1193[mag1193 < (1 - mean(mag1193,na.rm = TRUE))] <- 0
+    mag1193[mag1193 > 0] <- 1
+vec[193]
+mean(mag1193)
+mean(mag2193)
+
+```
+
+```{r}
+j <- 55
+mag155 <- image_import(DigitizationTODO$ImageName[j],DigitizationTODO$ImagePath[j])
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+mag255 <- t( apply( mag155, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+
+
+mag155[mag155 < (1 - mean(mag155,na.rm = TRUE))] <- 0
+    mag155[mag155 > 0] <- 1
+    
+mean(mag155)
+mean(mag255)
+```
+```{r}
+j <- 17394
+mag17394 <- image_import(DigitizationTODO$ImageName[j],DigitizationTODO$ImagePath[j])
+mean(mag17394)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+mag217394 <- t( apply( mag17394, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+
+
+mag17394[mag17394 < (1 - mean(mag17394,na.rm = TRUE))] <- 0
+    mag17394[mag17394 > 0] <- 1
+    
+mean(mag17394)
+mean(mag217394)
+```
+##Bright is true
+
+```{r}
+j <- 17394
+magb17394 <- image_import(DigitizationTODO$ImageName[j],DigitizationTODO$ImagePath[j])
+mean(magb17394)
+magb217394 <- t( apply( magb17394, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+
+ magb17394[magb17394<(quantile(magb17394,0.90))] <- 0
+      magb17394[magb17394>0] <- 1
+
+      
+      magb217394[0:100,] <- mean(magb217394)
+      magb217394[(nrow(magb217394)-60):(nrow(magb217394)),] <- mean(magb217394)
+      magb217394[magb217394 < 0] <- 0
+
+      #magb217394[magb217394 < 0] <- 0
+      mean(magb17394)
+      mean(magb217394)
+```
+

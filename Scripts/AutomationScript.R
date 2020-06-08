@@ -14,6 +14,15 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL,
     return(firstThing)
   }
 
+  yearChecking <- function(magnetogram){
+
+    splitMag <- strsplit(magnetogram, "-")
+    yearMonthDay <- splitMag[[1]][4]
+    separating <- strsplit(yearMonthDay,"")
+    year <- paste0(separating[[1]][1], separating[[1]][2], separating[[1]][3], separating[[1]][4])
+    return(year)
+  }
+
   ##Input checking --------------------------------------------------------------------
   if (is.null(ImageDigitizationDFnx6) | is.null(PWD)) {
     Error <- "Not all Parameters are filled in, please fill in and try again"
@@ -26,15 +35,6 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL,
 
   ## If all inputs are good, continue
 
-  ## Functions ------------------------------------------------------------------------
-  yearChecking <- function(magnetogram){
-
-    splitMag <- strsplit(magnetogram, "-")
-    yearMonthDay <- splitMag[[1]][4]
-    separating <- strsplit(yearMonthDay,"")
-    year <- paste0(separating[[1]][1], separating[[1]][2], separating[[1]][3], separating[[1]][4])
-    return(year)
-  }
 
   ## Selecting one year ---------------------------------------------------------------
 
