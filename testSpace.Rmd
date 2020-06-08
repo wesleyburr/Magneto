@@ -155,11 +155,19 @@ for (i in sam) {
 
 ```{r}
 for (i in 1:1000){
-  if(vec[i] > 0.8){
-    print(c(vec[i],i))
+  if(vec[i] < 0.3){
+    
+    if(vec[i] > 0.15){
+      if(vec[i] != 0){ 
+        print(c(vec[i],i))
+      } 
+      else{}
+    }
+    else{}
   }
+  else{}
 }
-sam[19]
+
 ```
 
   
@@ -168,8 +176,9 @@ hist(vec, breaks = 100)
 mean(vec)
 summary(vec)
 ```
+# lower number
 ```{r}
-j <- 193 #55
+j <- 193 
 mag1193 <- image_import(DigitizationTODO$ImageName[j],DigitizationTODO$ImagePath[j])
 source("~/Magneto2020/Scripts/BreakoutOptimization.R")
 mag2193 <- t( apply( mag1193, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
@@ -181,21 +190,72 @@ vec[193]
 mean(mag1193)
 mean(mag2193)
 
+
 ```
+## if bright is true
 
 ```{r}
-j <- 55
-mag155 <- image_import(DigitizationTODO$ImageName[j],DigitizationTODO$ImagePath[j])
-source("~/Magneto2020/Scripts/BreakoutOptimization.R")
-mag255 <- t( apply( mag155, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+j <- 193
+magb193 <- image_import(DigitizationTODO$ImageName[j],DigitizationTODO$ImagePath[j])
+mean(magb193)
+magb2193 <- t( apply( magb193, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
 
+##line 68 in TIS
+      magb193 <- 1/magb193
+      if(min(magb193) == 1) {
+        magb193 <- magb193-1
+        magb193 <- magb193/max(magb193)
+}
+ magb193[magb193<(quantile(magb193,0.90))] <- 0
+      magb193[magb193>0] <- 1
+      
+      magb2193[0:100,] <- mean(magb2193)
+      magb2193[(nrow(magb2193)-60):(nrow(magb2193)),] <- mean(magb2193)
+      magb2193[magb2193 < 0] <- 0
 
-mag155[mag155 < (1 - mean(mag155,na.rm = TRUE))] <- 0
-    mag155[mag155 > 0] <- 1
-    
-mean(mag155)
-mean(mag255)
+      #magb2193[magb2193 < 0] <- 0
+      mean(magb193)
+      mean(magb2193)
+      
 ```
+
+
+#The ones that are in the main range
+
+
+```{r}
+j <- 27580
+mag27580 <- image_import(DigitizationTODO$ImageName[j],DigitizationTODO$ImagePath[j])
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+mean(mag27580)
+mag227580 <- t( apply( mag27580, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+
+
+mag27580[mag27580 < (1 - mean(mag27580,na.rm = TRUE))] <- 0
+    mag27580[mag27580 > 0] <- 1
+    
+mean(mag27580)
+mean(mag227580)
+
+```
+```{r}
+j <- 8907
+mag8907 <- image_import(DigitizationTODO$ImageName[j],DigitizationTODO$ImagePath[j])
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+mean(mag8907)
+mag28907 <- t( apply( mag8907, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+
+
+mag8907[mag8907 < (1 - mean(mag8907,na.rm = TRUE))] <- 0
+    mag8907[mag8907 > 0] <- 1
+    
+mean(mag8907)
+mean(mag28907)
+
+```
+
+# higher range
+
 ```{r}
 j <- 17394
 mag17394 <- image_import(DigitizationTODO$ImageName[j],DigitizationTODO$ImagePath[j])
@@ -210,7 +270,7 @@ mag17394[mag17394 < (1 - mean(mag17394,na.rm = TRUE))] <- 0
 mean(mag17394)
 mean(mag217394)
 ```
-##Bright is true
+## Bright is true
 
 ```{r}
 j <- 17394
@@ -218,7 +278,12 @@ magb17394 <- image_import(DigitizationTODO$ImageName[j],DigitizationTODO$ImagePa
 mean(magb17394)
 magb217394 <- t( apply( magb17394, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
 
- magb17394[magb17394<(quantile(magb17394,0.90))] <- 0
+ magb17394 <- 1/magb17394
+ #     if(min(magb17394) == 1) {
+  #      magb17394 <- magb17394-1
+   #     magb17394 <- magb17394/max(magb17394)
+#}
+ magb17394[magb17394<(quantile(magb17394,0.90,na.rm = TRUE))] <- 0
       magb17394[magb17394>0] <- 1
 
       
