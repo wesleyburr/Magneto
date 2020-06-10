@@ -1,6 +1,17 @@
+library("tiff")
+library("pracma")
+library("data.table")
+library("functional")
+library("OpenImageR")
+library("data.table") # for the last call
+source("~/Magneto2020/Scripts/BreakoutOptimization.R") #for gauss
+
+
 DigitizationTODO <- read.csv("~/Magneto2020/FinalTable.csv", header = FALSE, stringsAsFactors = FALSE)
 names(DigitizationTODO) <- c("ImagePath", "ImageName", "DigitizedYet", "DigitizationPath", "DigitizationName", "ErrorWhenDigitized")
 
+
+## Functions -------------------------------------------------------------------
 image_import <- function(image,file_loc){
   readTIFF(paste0(file_loc,"/",image))
 }
@@ -21,29 +32,62 @@ isTiff <- function(imageName){
   }
 }
 
+## Main ------------------------------------------------------------------------
 
 i = 1
-vec <- vector()
-for (i in 1:148) {
+DiffWithAndWithoutGauss <- data.frame(imagePath = NA,  imageName = NA, MatMean = NA, MatMedian = NA, MatMax = NA , MatMin = NA,
+                  GaussMatMean = NA, GaussMatMedian = NA, GaussMatMax = NA, GaussMatMin = NA)
+counter = 0
+wrongName <- vector()
+sam <- sample(1:39266, size = 5000,replace = FALSE)
+for (i in sam) {
+
   imageName <-  as.character(DigitizationTODO$ImageName[i])
-  filePath <- DigitizationTODO$ImagePath[i]
+  imagePath <- DigitizationTODO$ImagePath[i]
+  ErrorMessage <- DigitizationTODO$ErrorWhenDigitized[i]
   firstPartOfName <- imageChecking(imageName, 1)
   tiffBool <- isTiff(imageName)
 
-  if (firstPartOfName == "AGC") {
-    if (tiffBool == TRUE) { # means that it is a .tiff file
-      mag <- image_import(imageName,filePath)
-      vec <- c(vec,max(mag))
-    }
-    else {
-      DigitizationTODO$ErrorWhenDigitized[i] <- "Not a tiff"
-      DigitizationTODO$DigitizedYet[i] <- "Not tiff"
+  if (is.na(ErrorMessage)) { # if there is an error message about the data (like there isn't any data)
 
+    if (firstPartOfName == "AGC" || firstPartOfName == "TOR") {
+      if (tiffBool == TRUE) { # means that it is a .tiff file
+        counter = counter + 1
+        print(counter)
+
+            mag <- image_import(imageName, imagePath)
+
+            DiffWithAndWithoutGauss[counter, "imagePath"] <- imagePath
+            DiffWithAndWithoutGauss[counter, "imageName"] <- imageName
+            DiffWithAndWithoutGauss[counter, "MatMean"] <- mean(mag)
+            DiffWithAndWithoutGauss[counter, "MatMedian"] <- median(mag)
+            DiffWithAndWithoutGauss[counter, "MatMax"] <- max(mag)
+            DiffWithAndWithoutGauss[counter, "MatMin"] <- min(mag)
+
+
+            mag2 <- t( apply( mag, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+
+            DiffWithAndWithoutGauss[counter, "GaussMatMean"] <- mean(mag2)
+            DiffWithAndWithoutGauss[counter, "GaussMatMedian"] <- median(mag2)
+            DiffWithAndWithoutGauss[counter, "GaussMatMax"] <- max(mag2)
+            DiffWithAndWithoutGauss[counter, "GaussMatMin"] <- min(mag2)
+
+
+      }
+      else {
+        print("not a TIFF")
+        print(imagePath)
+        print(imageName)
+        wrongName <- c(wrongName, paste0(imagePath, imageName))
+      }
     }
   }
   else{
-    DigitizationTODO$ErrorWhenDigitized[i] <- "Not An Image"
-
-
+    print("not AGC")
+    print(imagePath)
+    print(imageName)
+    wrongName <- c(wrongName, paste0(imagePath, imageName))
   }
+
+
 }

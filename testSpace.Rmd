@@ -3,6 +3,7 @@ title: "TestingSpace"
 output: pdf_document
 ---
 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -296,3 +297,69 @@ magb217394 <- t( apply( magb17394, MARGIN = 1, FUN = deconvGauss, sig = 10, kern
       mean(magb217394)
 ```
 
+
+
+
+
+#Making a distribution of the means
+```{r}
+TestData <- DiffWithAndWithoutGauss
+```
+
+```{r}
+library("ggplot2")
+library("data.table")
+library("tiff")
+length <- length(TestData)
+```
+
+```{r}
+Gauss <- data.frame(Range = TestData$GaussMatMean)
+Mat <- data.frame(Range = TestData$MatMean)
+
+Gauss$mean <- "forGauss"
+Mat$mean <- "Image"
+
+Means <- rbind(Gauss, Mat)
+
+ggplot(Means, aes(x = Range, fill = mean)) + geom_density(alpha = 0.2)
+```
+
+```{r}
+DigitizationTODO <- read.csv("~/Magneto2020/FinalTable.csv", header = FALSE, stringsAsFactors = FALSE)
+names(DigitizationTODO) <- c("ImagePath", "ImageName", "DigitizedYet", "DigitizationPath", "DigitizationName", "ErrorWhenDigitized")
+```
+
+```{r mm.486-gm0.00353}
+noGauss <-  image_import("AGC-HDZ-19430207-19430208.tif","/home/ben/magneto/Images/AGC-D-19420521-19430714/")
+mean(noGauss)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+mean(WithGauss)
+library("rtiff")
+plot(noGauss)
+plot(WithGauss)
+```
+
+```{r mm.0420-gm0.0061353}
+noGauss <-  image_import("AGC-Z-19290121-19290123.tif","/home/ben/magneto/Images/AGC-V-19281231-19320101/")
+mean(noGauss)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+mean(WithGauss)
+library("rtiff")
+plot(noGauss)
+plot(WithGauss)
+```
+
+
+```{r mm.0096-gm0.014}
+noGauss <-  image_import("AGC-Z-19370416-19370418.tif","/home/ben/magneto/Images/Range/AGC-V-19341231-19371001(some VDH)/")
+mean(noGauss)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+mean(WithGauss)
+library("rtiff")
+plot(noGauss)
+plot(WithGauss)
+```
