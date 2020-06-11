@@ -154,22 +154,6 @@ for (i in sam) {
 }
 ```
 
-```{r}
-for (i in 1:1000){
-  if(vec[i] < 0.3){
-    
-    if(vec[i] > 0.15){
-      if(vec[i] != 0){ 
-        print(c(vec[i],i))
-      } 
-      else{}
-    }
-    else{}
-  }
-  else{}
-}
-
-```
 
   
 ```{r}
@@ -303,7 +287,8 @@ magb217394 <- t( apply( magb17394, MARGIN = 1, FUN = deconvGauss, sig = 10, kern
 
 #Making a distribution of the means
 ```{r}
-TestData <- DiffWithAndWithoutGauss
+#TestData <- DiffWithAndWithoutGauss
+TestData <- read.csv("DiffWAWOG554IQR.csv")
 ```
 
 ```{r}
@@ -313,7 +298,7 @@ library("tiff")
 length <- length(TestData)
 ```
 
-```{r}
+```{r means}
 Gauss <- data.frame(Range = TestData$GaussMatMean)
 Mat <- data.frame(Range = TestData$MatMean)
 
@@ -325,13 +310,96 @@ Means <- rbind(Gauss, Mat)
 ggplot(Means, aes(x = Range, fill = mean)) + geom_density(alpha = 0.2)
 ```
 
+```{r IQR}
+Gauss <- data.frame(IQRRange = (TestData$GaussMatQ3 - TestData$GaussMatQ1))
+Mat <- data.frame(IQRRange = (TestData$MatQ3 - TestData$MatQ1))
+
+Gauss$IQR <- "forGauss"
+Mat$IQR <- "Image"
+
+IQRs <- rbind(Gauss, Mat)
+
+ggplot(IQRs,aes(x = IQRRange, fill = IQR)) + geom_density(,alpha = 0.2, position = "identity") 
+```
+
+
 ```{r}
 DigitizationTODO <- read.csv("~/Magneto2020/FinalTable.csv", header = FALSE, stringsAsFactors = FALSE)
 names(DigitizationTODO) <- c("ImagePath", "ImageName", "DigitizedYet", "DigitizationPath", "DigitizationName", "ErrorWhenDigitized")
 ```
 
+
+```{r}
+for (i in 1:554){
+  if(TestData$MatMean[i] < 0.05){
+    
+        print(c(TestData$MatMean[i],i))
+       
+      
+    
+  }
+  else{}
+}
+
+```
+
 ```{r mm.486-gm0.00353}
 noGauss <-  image_import("AGC-HDZ-19430207-19430208.tif","/home/ben/magneto/Images/AGC-D-19420521-19430714/")
+mean(noGauss)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+mean(WithGauss)
+library("rtiff")
+plot(noGauss)
+plot(WithGauss)
+```
+```{r mm0.09338-gm0.0136}
+noGauss <-  image_import("AGC-D-19071008-19071010.tif","/home/ben/magneto/Images/AGC-D-19040830-19071124/")
+mean(noGauss)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+mean(WithGauss)
+library("rtiff")
+plot(noGauss)
+plot(WithGauss)
+```
+
+```{r mm0.0826-gm0.01206}
+noGauss <-  image_import("AGC-V-19230711-19230713.tif","/home/ben/magneto/Images/AGC-V-19230102-19260101/")
+mean(noGauss)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+mean(WithGauss)
+library("rtiff")
+plot(noGauss)
+plot(WithGauss)
+```
+
+```{r mm.0738-gm0.01077}
+noGauss <-  image_import("AGC-Z-19260121-19260123.tif","/home/ben/magneto/Images/AGC-V-19260101-19281230/")
+mean(noGauss)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+mean(WithGauss)
+library("rtiff")
+writeTIFF(WithGauss, "closerLook.tiff")
+plot(noGauss)
+plot(WithGauss)
+```
+
+```{r mm.0604-gm0.00882}
+noGauss <-  image_import("AGC-D-19250223-19250225.tif","/home/ben/magneto/Images/Range/AGC-D-19240306-19270426/")
+mean(noGauss)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+mean(WithGauss)
+library("rtiff")
+plot(noGauss)
+plot(WithGauss)
+```
+
+```{r mm.054-gm0.00788}
+noGauss <-  image_import("AGC-Z-19311124-19311126-Readme.tif","/home/ben/magneto/Images/Range/AGC-V-19281231-19320101/")
 mean(noGauss)
 source("~/Magneto2020/Scripts/BreakoutOptimization.R")
 WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
@@ -352,6 +420,57 @@ plot(noGauss)
 plot(WithGauss)
 ```
 
+```{r mm.0385-gm0.00563}
+noGauss <-  image_import("AGC-D-19310628-19310630.tif","/home/ben/magneto/Images/AGC-D-19300619-19330612/")
+mean(noGauss)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+mean(WithGauss)
+IQR(noGauss)
+IQR(WithGauss)
+library("rtiff")
+plot(noGauss)
+plot(WithGauss)
+```
+
+```{r mm.027-gm0.0039}
+noGauss <-  image_import("AGC-V-19230830-19230831.tif","/home/ben/magneto/Images/Range/AGC-V-19230102-19260101/")
+
+mean(noGauss)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+WithGauss2 <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.01, nw = 3 ) )
+mean(WithGauss)
+plot(noGauss)
+plot(WithGauss)
+plot(WithGauss2)
+```
+
+```{r mm.0227-gm0.0033}
+noGauss <-  image_import("AGC-D-19340912-19340914-Readme.tif","/home/ben/magneto/Images/AGC-D-19330601-19360630/")
+
+mean(noGauss)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+WithGauss2 <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.01, nw = 3 ) )
+mean(WithGauss)
+plot(noGauss)
+plot(WithGauss)
+plot(WithGauss2)
+
+```
+
+
+
+```{r mm.0230-gm0.00337}
+noGauss <-  image_import("AGC-Z-19280727-19280729-Readme.tif","/home/ben/magneto/Images/AGC-V-19260101-19281230/")
+mean(noGauss)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+mean(WithGauss)
+plot(noGauss)
+plot(WithGauss)
+```
 
 ```{r mm.0096-gm0.014}
 noGauss <-  image_import("AGC-Z-19370416-19370418.tif","/home/ben/magneto/Images/Range/AGC-V-19341231-19371001(some VDH)/")
