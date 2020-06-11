@@ -78,10 +78,10 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL,
       firstPartOfName <- imageChecking(oneImageName)
       tiffBool <- isTiff(oneImageName)
 
-      if (notEmpty == TRUE) {
+      if (notEmpty) {
         if (is.na(ErrorMessage)) { # if there is an error message about the data (like there isn't any data)
           if (firstPartOfName == "AGC" || firstPartOfName == "TOR") {
-            if (tiffBool == TRUE) { # means that it is a .tiff file
+            if (tiffBool) { # means that it is a .tiff file
               browser()
               source("~/Magneto2020/Scripts/TISForAutomation.R")
               TISForAutomation(oneImagePath, image_name = oneImageName , withplots = withplots,
