@@ -6,3 +6,6 @@ Normal_Days_Per_month/
 *.tif
 *.csv
 DigitizedImages/
+Images.txt
+ImagesPNG/
+*.Rout

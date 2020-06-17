@@ -35,14 +35,14 @@ isTiff <- function(imageName){
 ## Main ------------------------------------------------------------------------
 
 i = 1
-DiffWithAndWithoutGauss <- data.frame(imagePath = NA,  imageName = NA, MatMean = NA, MatMedian = NA,
+DiffWithAndWithoutGauss <- data.frame(imagePath = NA,  imageName = NA, MatMean = NA, noZeroMean = NA, MatMedian = NA,
                                       MatQ1 = NA, MatQ3 = NA, MatMax = NA , MatMin = NA,
-                                      GaussMatMean = NA, GaussMatMedian = NA, GaussMatQ1 = NA,
-                                      GaussMatQ3 = NA, GaussMatMax = NA, GaussMatMin = NA)
+                                      GaussMatMean = NA, GaussMatNonZeroMean = NA, GaussMatMedian = NA, 
+                                      GaussMatQ1 = NA,GaussMatQ3 = NA, GaussMatMax = NA, GaussMatMin = NA)
 counter = 0
 forCounter = 0
 wrongName <- vector()
-sam <- sample(1:39266, size = 5000 ,replace = FALSE)
+sam <- sample(1:39266, size = 1000 ,replace = FALSE)
 for (i in sam) { 
   forCounter <- forCounter + 1
   imageName <-  as.character(DigitizationTODO$ImageName[i])
@@ -69,6 +69,7 @@ for (i in sam) {
               DiffWithAndWithoutGauss[counter, "MatMin"] <- min(mag)
               DiffWithAndWithoutGauss[counter, "MatQ1"] <- as.numeric(quantile(mag, probs = 0.25))
               DiffWithAndWithoutGauss[counter, "MatQ3"] <- as.numeric(quantile(mag, probs = 0.75))
+              DiffWithAndWithoutGauss[counter, "noZeroMean"] <- mean(mag[mag != 0])
 
 
               mag2 <- t( apply( mag, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
@@ -79,6 +80,7 @@ for (i in sam) {
               DiffWithAndWithoutGauss[counter, "GaussMatMin"] <- min(mag2)
               DiffWithAndWithoutGauss[counter, "GaussMatQ1"] <- as.numeric(quantile(mag2, probs = 0.25))
               DiffWithAndWithoutGauss[counter, "GaussMatQ3"] <- as.numeric(quantile(mag2, probs = 0.75))
+              DiffWithAndWithoutGauss[counter, "GaussMatNonZeroMean"] <- mean(mag2[mag2 != 0])
 
         }
         else {

@@ -287,8 +287,8 @@ magb217394 <- t( apply( magb17394, MARGIN = 1, FUN = deconvGauss, sig = 10, kern
 
 #Making a distribution of the means
 ```{r}
-#TestData <- DiffWithAndWithoutGauss
-TestData <- read.csv("DiffWAWOG554IQR.csv")
+TestData2 <- DiffWithAndWithoutGauss
+TestData <- read.csv("DiffWAWOG4948IQR.csv")
 ```
 
 ```{r}
@@ -307,7 +307,18 @@ Mat$mean <- "Image"
 
 Means <- rbind(Gauss, Mat)
 
-ggplot(Means, aes(x = Range, fill = mean)) + geom_density(alpha = 0.2)
+ggplot(Means, aes(x = Range, fill = mean)) + geom_density(alpha = 0.2) + geom_vline(xintercept = 0.09, linetype = "dashed") + geom_vline(xintercept = 0.0227, linetype = "dashed")
+```
+```{r meansNoZero}
+Gauss <- data.frame(Range = TestData2$GaussMatNonZeroMean)
+Mat <- data.frame(Range = TestData2$noZeroMean)
+
+Gauss$mean <- "forGauss"
+Mat$mean <- "Image"
+
+Means <- rbind(Gauss, Mat)
+
+ggplot(Means, aes(x = Range, fill = mean)) + geom_density(alpha = 0.2) + geom_vline(xintercept = 0.09, linetype = "dashed") + geom_vline(xintercept = 0.0227, linetype = "dashed")
 ```
 
 ```{r IQR}
@@ -319,7 +330,7 @@ Mat$IQR <- "Image"
 
 IQRs <- rbind(Gauss, Mat)
 
-ggplot(IQRs,aes(x = IQRRange, fill = IQR)) + geom_density(,alpha = 0.2, position = "identity") 
+ggplot(IQRs,aes(x = IQRRange, fill = IQR)) + geom_density(,alpha = 0.2, position = "identity")+ geom_vline(xintercept = 0.09, linetype = "dashed") + geom_vline(xintercept = 0.0227, linetype = "dashed") 
 ```
 
 
@@ -330,8 +341,8 @@ names(DigitizationTODO) <- c("ImagePath", "ImageName", "DigitizedYet", "Digitiza
 
 
 ```{r}
-for (i in 1:554){
-  if(TestData$MatMean[i] < 0.05){
+for (i in 1:4948){
+  if(TestData$MatMean[i] < 0.02){
     
         print(c(TestData$MatMean[i],i))
        
@@ -472,6 +483,16 @@ plot(noGauss)
 plot(WithGauss)
 ```
 
+```{r mm.01806-gm0.00263}
+noGauss <-  image_import("AGC-Z-19270414-19270415-Readme.tif","/home/ben/magneto/Images/Range/AGC-V-19260101-19281230/")
+mean(noGauss)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+mean(WithGauss)
+plot(noGauss)
+plot(WithGauss)
+```
+
 ```{r mm.0096-gm0.014}
 noGauss <-  image_import("AGC-Z-19370416-19370418.tif","/home/ben/magneto/Images/Range/AGC-V-19341231-19371001(some VDH)/")
 mean(noGauss)
@@ -481,4 +502,93 @@ mean(WithGauss)
 library("rtiff")
 plot(noGauss)
 plot(WithGauss)
+```
+```{r mm0.4860082FirstInBetightTest}
+noGauss <-  image_import("AGC-HDZ-19430207-19430208.tif","/home/ben/magneto/Images/AGC-D-19420521-19430714/")
+mean(noGauss)
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply( noGauss, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+mean(WithGauss)
+library("rtiff")
+plot(noGauss)
+plot(WithGauss)
+```
+
+
+#Start with looking at individual histograms
+```{r}
+meanProblem <- c(0,0,0.1,0.2,0,0.3,0,0)
+tempVec <- vector()
+for (i in 1:length(meanProblem)){
+if (meanProblem[i] != 0){
+  tempVec <- c(tempVec, meanProblem[i])
+}
+}  
+mean(meanProblem[meanProblem != 0])
+mean(tempVec)
+meanp <- c(0.1,0.2,0.3)
+mean(meanp)
+```
+
+```{r }
+library("png")
+library("tiff")
+library("knitr")
+DigitizationTODO <- read.csv("~/Magneto2020/DataCSV/200615_pngTODOB3.csv", header = FALSE, stringsAsFactors = FALSE)
+names(DigitizationTODO) <- c("ImagePath", "ImageName", "DigitizedYet", "DigitizationPath", "DigitizationName", "ErrorWhenDigitized")
+i = 1
+temp <- readPNG(paste0(DigitizationTODO$ImagePath[i], DigitizationTODO$ImageName[i]))
+hist(temp, breaks = 60)
+ 
+knitr::include_graphics(paste0(DigitizationTODO$ImagePath[i], DigitizationTODO$ImageName[i]))
+
+```
+```{rmm.486-gm0.00353}
+
+i = 1
+fileWithPath <- "~/Magneto2020/ImagesPNG/AGC-HDZ-19430207-19430208.tif.png"
+temp <- readPNG(fileWithPath)
+hist(temp, breaks = 60)
+ 
+knitr::include_graphics(fileWithPath)
+
+```
+
+
+```{r comp}
+fileWithPath1 <- "~/Magneto2020/ImagesPNG/AGC-HDZ-19430207-19430208.tif.png"
+fileWithPath2 <- "~/Magneto2020/ImagesPNG/AGC--H-19260101-19260103.tif.png"
+temp1 <- readPNG(fileWithPath1)
+temp2 <- readPNG(fileWithPath2)
+Mat1 <- data.frame(Range = temp1)
+Mat2 <- data.frame(Range = temp2)
+
+Mat1$name <- "image 1"
+Mat2$name <- "image 2"
+
+hist(temp1)
+hist(temp2, add = TRUE, border = "blue")
+knitr::include_graphics(fileWithPath1)
+knitr::include_graphics(fileWithPath2)
+```
+
+{r mm.0420-gm0.0061353}
+noGauss <-  image_import("AGC-Z-19290121-19290123.tif","/home/ben/magneto/Images/AGC-V-19281231-19320101/")
+
+
+```{r mm.0420-gm0.0061353comp}
+fileWithPath1 <- "~/Magneto2020/ImagesPNG/AGC-Z-19290121-19290123.tif.png"
+fileWithPath2 <- "~/Magneto2020/ImagesPNG/AGC--H-19260101-19260103.tif.png"
+temp1 <- readPNG(fileWithPath1)
+temp2 <- readPNG(fileWithPath2)
+Mat1 <- data.frame(Range = temp1)
+Mat2 <- data.frame(Range = temp2)
+
+Mat1$name <- "image 1"
+Mat2$name <- "image 2"
+
+hist(temp1)
+hist(temp2, add = TRUE, border = "blue")
+knitr::include_graphics(fileWithPath1)
+knitr::include_graphics(fileWithPath2)
 ```
