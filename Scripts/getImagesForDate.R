@@ -17,4 +17,4 @@ getImagesForDate <- function(path = "~/", keyword = NULL){
 }
 
 
-test <- getImagesForDate(keyword = "testSpace")
+test <- getImagesForDate(keyword = "1890012")
