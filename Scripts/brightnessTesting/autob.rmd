@@ -1,0 +1,32 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library("png")
+library("knitr")
+
+```
+```{r}
+
+pngs <- read.table("~/txtFiles/pngsFinal.txt")
+```
+```{r}
+i = 1
+userOpinion  = vector()
+```
+
+
+```{r}
+
+scan <- readPNG(source = "/home/ben/Magneto2020/ImagesPNG/AGC-H-18881030-18881102.tif.png")
+knitr::include_graphics(as.character(pngs$V1[i]))
+
+userOpinion[i] <- readline(prompt = "Is this image bright(b), good(g), dim(d)")
+
+i = i + 1
+```

@@ -52,8 +52,8 @@ Mat2$name <- "image 2"
 
 knitr::include_graphics(fileWithPath1)
 knitr::include_graphics(fileWithPath2)
-hist(temp1)
-hist(temp2, add = TRUE, border = "red")
+hist(temp1, probability = T)
+hist(temp2, add = TRUE, border = "red", probability = T)
 
 ```
 
@@ -61,7 +61,7 @@ hist(temp2, add = TRUE, border = "red")
 ## mm.0420-gm0.0061353
 ```{r mm.0420-gm0.0061353comp}
 fileWithPath1 <- "~/Magneto2020/ImagesPNG/AGC-HDZ-19430207-19430208.tif.png" #0.486
-fileWithPath2 <- "~/Magneto2020/ImagesPNG/AGC-Z-19290121-19290123.tif.png" #0.0420
+fileWithPath2 <- "~/Magneto2020/ImagesPNG/AGC-Z-19290121-19290123.tif.png" #0.0420 blue
 temp1 <- readPNG(fileWithPath1)
 temp2 <- readPNG(fileWithPath2)
 Mat1 <- data.frame(Range = temp1)
@@ -72,8 +72,8 @@ Mat2$name <- "image 2"
 
 knitr::include_graphics(fileWithPath1)
 knitr::include_graphics(fileWithPath2)
-hist(temp1)
-hist(temp2, add = TRUE, border = "blue")
+hist(temp1, probability = T)
+hist(temp2, add = TRUE, border = "blue", probability = T)
 ```
 
 ## mm. 0.0385
@@ -85,7 +85,7 @@ fileWithPath2 <- "~/Magneto2020/ImagesPNG/AGC-D-19310628-19310630.tif.png" #0.03
 temp1 <- readPNG(fileWithPath1)
 temp2 <- readPNG(fileWithPath2)
 
-
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
 WithGauss <- t( apply(temp2, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) ) # done on the second image
 writePNG(WithGauss,"~/tGauss.png")
 gaussfile <- "~/tGauss.png"
@@ -98,32 +98,36 @@ knitr::include_graphics(gaussfile)
 # plots
 ##full plot ----------------
 hist(temp1, breaks = 100,
-     ylim = c(0,4e6))
-hist(temp2, add = TRUE, border = "red", , breaks = 100)
-hist(WithGauss, add = TRUE, border = "blue")
+     #ylim = c(0,4e6)
+     , probability = T)
+hist(temp2, add = TRUE, border = "red", , breaks = 100, probability = T)
+hist(WithGauss, add = TRUE, border = "blue", probability = T)
 legend(x = "topright", legend = paste0("image:", c("first", "second", "gauss on 2")),
 fill = c("black", "red", "blue"))
-##the low side ----------------
+##the right side ----------------
 hist(temp1, breaks = 100,
-     ylim = c(0,4e6),
+     ylim = c(0,10),
     #ylim = c(0,2e5),
-    #xlim = c(0.4,1))
-    xlim = c(0,0.3))
-hist(temp2, add = TRUE, border = "red", , breaks = 100)
-hist(WithGauss, add = TRUE, border = "blue")
+    xlim = c(0.4,1),
+     probability = T)
+hist(temp2, add = TRUE, border = "red", , breaks = 100, probability = T)
+hist(WithGauss, add = TRUE, border = "blue", probability = T)
+legend(x = "topleft", legend = paste0("image:", c("first", "second", "gauss on 2")),
+fill = c("black", "red", "blue"))
+
+##the left side ----------------
+hist(temp1, breaks = 100,
+     #ylim = c(0,4e6),
+     ylim = c(0,100),
+     #xlim = c(0.4,1), 
+     probability = T,
+     xlim = c(0,0.4))
+hist(temp2, add = TRUE, border = "red", , breaks = 100, probability = T)
+hist(WithGauss, add = TRUE, border = "blue", probability = T)
 legend(x = "topright", legend = paste0("image:", c("first", "second", "gauss on 2")),
 fill = c("black", "red", "blue"))
 
-##the high side ----------------
-hist(temp1, breaks = 100,
-     #ylim = c(0,4e6),
-     ylim = c(0,2e5),
-     xlim = c(0.4,1))
-    #xlim = c(0,0.4))
-hist(temp2, add = TRUE, border = "red", , breaks = 100)
-hist(WithGauss, add = TRUE, border = "blue")
-legend(x = "topleft", legend = paste0("image:", c("first", "second", "gauss on 2")),
-fill = c("black", "red", "blue"))
+
 
 ```
 

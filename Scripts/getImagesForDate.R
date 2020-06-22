@@ -1,20 +1,33 @@
+
+
 #' Finds all files that contain a specific string, in this case for finding files
-#' that contain a specific year
-#' @param path Where you would like the function to look
-#' @param keyword The word that you are trying to find in file names
-#' @return
+#' that contain a specific year.
+#' @param path Where you would like the function to look.
+#' @param keyword The word that you are trying to find in file names.
+#' @return  Vector with all paths for each item found with the keyword contained in it.
+#' @export
 
-
-
-getImagesForDate <- function(path = "~/", keyword = NULL){
-
+findPathsForkeyword <- function(path = "~/", keyword = NULL){
   library("fs")
-  setwd("~/")
+  if(is.null(keyword) || is.null(path)) {
+    return(print("Must not have null in the specified argument"))
+  }
   word = paste0("*",keyword,"*")
-  #temporary until I can access all of the things in the directory (access denied)
-  #Images  <- fs::dir_ls(glob = word, path = "~/magneto/Images/", recurse = TRUE)
-  Images  <- fs::dir_ls(glob = word, path = "~/", recurse = TRUE)
+  spathWithKeyword = vector()
+
+  symlinks <- fs::dir_ls(path = path , recurse = TRUE, type = "symlink")
+  if (!identical(symlinks, character(0))) {
+    symL <- length(symlinks)
+    for (i in 1:symL) {
+      spathWithKeyword[i] <- fs::dir_ls(path = symlinks[i], recurse = TRUE, type = "symlink")
+    }
+
+  }
+  pathWithKeyword  <- fs::dir_ls(glob = word, path = path, recurse = TRUE, type = "any")
+
+  allPathWithKeyword <- c(spathWithKeyword, pathWithKeyword)
+  return(allPathWithKeyword)
 }
 
 
-test <- getImagesForDate(keyword = "1890012")
+test <- findPathsForkeyword(keyword = "1890012")
