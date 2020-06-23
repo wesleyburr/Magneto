@@ -1,3 +1,12 @@
+#need to add these to the documentation
+library("tiff")
+library("pracma")
+library("multitaper")
+library("data.table")
+library("functional")
+library("OpenImageR")
+
+
 #' Finds all files that contain a specific string, in this case for finding files
 #' that contain a specific year.
 #' @param path Where you would like the function to look.
@@ -29,3 +38,38 @@ findPathsForkeyword <- function(path = "~/", keyword = NULL){
   return(as.character(allPathWithKeyword[-1]))
 }
 
+
+#' Checks a given file path with name to see if the file is empty 0b
+#' @param filePath The path for the directory where the file is located
+#' @param fileName The name of the file located in the path directory
+#' @return a bool of TRUE or FALSE
+#' @export
+notEmptyFile <- function(filePath = NA, fileName = NA){
+  if (is.na(filePath) ||  is.na(fileName)) {
+    return(print("missing filePath or fileName"))
+  }
+  if (as.numeric(file.info(paste0(filePath,fileName))[1]) != 0) {
+    return(notEmpty = TRUE)
+  }
+  else {
+    return(notEmpty = FALSE)
+  }
+}
+
+
+#' Checks to see if the image is vertical or horizontal
+#' @param array The array of an imported tiff,png,etc...
+#' @return The array horizontally
+#' @export
+verticalImageCheck <- function(array){
+  ncol_array <- ncol(array)
+  nrow_array <- nrow(array)
+
+  if (ncol_array < nrow_array) {
+    retVal <- apply(array,1,rev)
+  }
+  else {
+    retVal <- array
+  }
+  return(retVal)
+}

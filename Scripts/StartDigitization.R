@@ -8,7 +8,7 @@ names(DigitizationTODO) <- c("ImagePath", "ImageName", "DigitizedYet", "Digitiza
 
 ##MainScrips----------------------------------------------------------------------------
 source("~/Magneto2020/Scripts/AutomationScript.R")
-DigitizationUsingTIS(DigitizationTODO, PWD = PWD)
+DigitizationUsingTIS(DigitizationTODO, PWD = PWD, keyword = Range)
 
 #Image.Group <- "~/SpecificDataAskedFor/ACG-D-193109/"
 #source("~/Magneto2020/Scripts/TIS.R")

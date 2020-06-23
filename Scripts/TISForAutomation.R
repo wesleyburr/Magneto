@@ -1,6 +1,6 @@
+
 TISForAutomation <- function(file_location = 0, image_name = FALSE,
                 numTraces = 2, withplots = TRUE, optimization = TRUE, saveresults = TRUE, bright = FALSE) {
-
 
   library("tiff")
   library("pracma")
@@ -10,6 +10,7 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
   source("~/Magneto2020/Scripts/CustomFunctions.R")
 
   ## Functions ------------------------------------------------------------------
+
 
   image_import <- function(image,file_loc){
     readTIFF(paste0(file_loc,"/",image))
@@ -54,36 +55,36 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
   ## Script --------------------------------------------------------------------
 
 
-  mag1 <- image_import(image = image_name,file_loc = file_location)
+  image <- image_import(image = image_name,file_loc = file_location)
 
-  print(paste0("The minimum value in image is: ", min(mag1)))
-  print(paste0("The maximum value in image is: ", max(mag1)))
+  print(paste0("The minimum value in image is: ", min(image)))
+  print(paste0("The maximum value in image is: ", max(image)))
 
 
-  if (class(mag1) == "array") {
+  if (class(image) == "array") {
 
-    mag1 <- classArrayEdit(mag1)
+    image <- classArrayEdit(image)
 
   }
   if (bright == TRUE) {
 
-    mag1 <- brightImages(mag1)
+    image <- brightImages(image)
   }
 
 
 
-  mag1 <- verticalImageCheck(mag1)
+  image <- verticalImageCheck(image)
 
 
 
   ## lets us check if the image has the correct contrast
-  writeTIFF(mag1,"testing1_auto.tif")
-  mag2 <- t( apply(mag1, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+  writeTIFF(image,"testing1_auto.tif")
+  gaussImage <- t( apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
 
   print("")
-  writeTIFF(mag2,"testing2_auto.tif")
+  writeTIFF(gaussImage,"testing2_auto.tif")
 
-  print("===== Preprocessing for mag1 =====")
+  print("===== Preprocessing for image =====")
 
 
 
@@ -93,35 +94,35 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
 
   if (bright == FALSE) {
 
-    mag1[mag1 < (1 - mean(mag1,na.rm = TRUE))] <- 0
-    mag1[mag1 > 0] <- 1
-    writeTIFF(mag1,"testing3.tif")
+    image[image < (1 - mean(image,na.rm = TRUE))] <- 0
+    image[image > 0] <- 1
+    writeTIFF(image,"testing3.tif")
 
-    mag2[0:100,] <- mean(mag2)
-    mag2[(nrow(mag2) - 60):(nrow(mag2)),] <- mean(mag2)
-    mag2[mag2 < 0] <- 0
+    gaussImage[0:100,] <- mean(gaussImage)
+    gaussImage[(nrow(gaussImage) - 60):(nrow(gaussImage)),] <- mean(gaussImage)
+    gaussImage[gaussImage < 0] <- 0
 
-    col_sums <- colSums(mag2)
-    row_sums <- rowSums(mag2)
+    col_sums <- colSums(gaussImage)
+    row_sums <- rowSums(gaussImage)
     threshold <- (0.8*mean(row_sums))
     print("Identify Peaks is done!")
 
   }
   else {# this is bright = false
 
-    mag1[mag1 < (quantile(mag1,0.90))] <- 0
-    mag1[mag1 > 0] <- 1
+    image[image < (quantile(image,0.90))] <- 0
+    image[image > 0] <- 1
 
     print("")
     print("===== Identify Peaks With Brightness =====")
 
 
-    mag2[0:100, ] <- mean(mag2)
-    mag2[(nrow(mag2) - 60):(nrow(mag2)),] <- mean(mag2)
-    mag2[mag2 < 0] <- 0
+    gaussImage[0:100, ] <- mean(gaussImage)
+    gaussImage[(nrow(gaussImage) - 60):(nrow(gaussImage)),] <- mean(gaussImage)
+    gaussImage[gaussImage < 0] <- 0
 
-    col_sums <- colSums(mag2)
-    row_sums <- rowSums(mag2)
+    col_sums <- colSums(gaussImage)
+    row_sums <- rowSums(gaussImage)
     threshold <- (0.8*mean(row_sums))
 
 
@@ -133,7 +134,7 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
 #Peaks <- findpeaks(rowSums, npeaks = 4, threshold = threshold , sortstr = FALSE)
 #points(Peaks[, 2], Peaks[, 1], pch = 20, col = "maroon")
 #length(Peaks)
-}
+
 #first_peak_start <- Peaks[1,3]
 #first_peak_end <- Peaks[1,4]
 
@@ -145,8 +146,8 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
 
 
 
-
-
+##End of function
+}
 
 
 

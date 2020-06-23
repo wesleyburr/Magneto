@@ -1,4 +1,4 @@
-DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL,
+DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL, keyword = FALSE, PathToLookIn = NULL
                                  withplots = TRUE, optimization = TRUE, saveresults = TRUE, bright = FALSE){
   library("tiff")
   library("pracma")
@@ -56,14 +56,18 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL,
     Error <- "Your dataframe has the wrong dimentions, should be 6 columns with 3rd being TRUE or FALSE"
     return(Error)
   }
+  if (is.null(keyword) || is.null(PathToLookIn)) {
+    Error <- "Need to add a specific keyword or a common trait of the file names with a path input"
+  }
 
   ## If all inputs are good, continue
 
 
   ## Selecting one year ---------------------------------------------------------------
-
-
+  source("~/Magneto2020/Scripts/Functions.R")
+  foundWithKeyword <- findPathsForkeyword(path = PathToLookIn, keyword = keyword)
   ## Breaking down the file locations -------------------------------------------------
+#TODO need to get the keywords searched in the file so I know there index
 
   for (i in 1:3) {# oneYear)) {
     if (ImageDigitizationDFnx6$DigitizedYet[i] == "True") {
