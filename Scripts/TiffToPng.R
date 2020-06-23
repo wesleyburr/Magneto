@@ -6,6 +6,7 @@ PWD <- setwd("~/Magneto2020/ImagesPNG/")
 DigitizationTODO <- read.csv("~/Magneto2020/DataCSV/pngTODO200620.csv", header = FALSE, stringsAsFactors = FALSE)
 names(DigitizationTODO) <- c("ImagePath", "ImageName", "ConvertedYet", "DigitizationPath", "DigitizationName", "ErrorWhenDigitized")
 
+
 ## Functions -------------------------------------------------------------------
 image_import <- function(image,file_loc){
   readTIFF(paste0(file_loc,"/",image))
@@ -30,10 +31,10 @@ isTiff <- function(imageName){
 ## Main ------------------------------------------------------------------------
 
 
-counter = 0
+counter = 10799
 wrongName <- vector()
 
-for (i in 1:length(DigitizationTODO$ImageName)) {
+for (i in 10800:length(DigitizationTODO$ImageName)) {
   imageName <-  as.character(DigitizationTODO$ImageName[i])
   imagePath <- DigitizationTODO$ImagePath[i]
   ErrorMessage <- DigitizationTODO$ErrorWhenDigitized[i]
@@ -53,8 +54,8 @@ for (i in 1:length(DigitizationTODO$ImageName)) {
 
             mag <- image_import(imageName, imagePath)
             writePNG(mag, target = paste0(imageName,".png"))
-            DigitizationTODO$DigitizedYet[i] = TRUE
-            write.csv(DigitizationTODO, file = "~/Magneto2020/DataCSV/pngTODOTesting.csv")
+            DigitizationTODO$ConvertedYet[i] = TRUE
+            #write.csv(DigitizationTODO, file = "~/Magneto2020/DataCSV/pngTODOTesting.csv")
 
           }
           else {
