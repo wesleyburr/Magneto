@@ -80,7 +80,7 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
   ## lets us check if the image has the correct contrast
   writeTIFF(image,"testing1_auto.tif")
   gaussImage <- t( apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
-
+  browser()
   print("")
   writeTIFF(gaussImage,"testing2_auto.tif")
 

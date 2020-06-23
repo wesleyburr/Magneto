@@ -1,4 +1,4 @@
-DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL, keyword = FALSE, PathToLookIn = NULL
+DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL, keywordInName = FALSE,
                                  withplots = TRUE, optimization = TRUE, saveresults = TRUE, bright = FALSE){
   library("tiff")
   library("pracma")
@@ -50,26 +50,27 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL, keyw
 
   if (is.null(ImageDigitizationDFnx6) | is.null(PWD)) {
     Error <- "Not all Parameters are filled in, please fill in and try again"
-    return(Error)
+    return(stop(Error))
   }
   if (dim.data.frame(ImageDigitizationDFnx6)[2] != 6) {
     Error <- "Your dataframe has the wrong dimentions, should be 6 columns with 3rd being TRUE or FALSE"
-    return(Error)
+    return(stop(Error))
   }
-  if (is.null(keyword) || is.null(PathToLookIn)) {
-    Error <- "Need to add a specific keyword or a common trait of the file names with a path input"
+  if (is.null(keywordInName)) {
+    Error <- "Need to add a specific keyword or a common trait of the file names"
+    return(stop(Error))
   }
-
+  browser()
   ## If all inputs are good, continue
 
 
   ## Selecting one year ---------------------------------------------------------------
-  source("~/Magneto2020/Scripts/Functions.R")
-  foundWithKeyword <- findPathsForkeyword(path = PathToLookIn, keyword = keyword)
+  foundWithKeyword <- grep(keywordInName, x = DigitizationTODO$ImageName)
+
   ## Breaking down the file locations -------------------------------------------------
 #TODO need to get the keywords searched in the file so I know there index
 
-  for (i in 1:3) {# oneYear)) {
+  for (i in foundWithKeyword) {
     if (ImageDigitizationDFnx6$DigitizedYet[i] == "True") {
       print(paste0(ImageDigitizationDFnx6$ImageName[i], " has been digitized"))
     }

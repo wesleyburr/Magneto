@@ -16,10 +16,10 @@ library("OpenImageR")
 
 findPathsForkeyword <- function(path = "~/", keyword = NULL){
   library("fs")
-  if (is.null(keyword) || is.null(path)) {
-    return(print("Must not have null in the specified argument"))
+  if (is.null(keyword)) {
+    return(stop("Must not have null in the specified argument"))
   }
-  word = paste0("*",keyword,"*")
+  word = paste0("*",as.character(keyword),"*")
 
   spathWithKeyword = vector()
   spath = vector
