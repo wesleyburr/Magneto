@@ -1,3 +1,13 @@
+#'This function breaks down the inputted dataframe and initializes the TISForAutomationFunction
+#'@param ImageDigitizedDFnx6 is a user inputed data frame with 6 specific columns. (use DigitizationTODO.py to get the format)
+#'@param PWD is the present working directory currently
+#'@param keywordInName Certain keyword that the user wants to base the digitization off of
+#'@param withPlots Displays plots to the user as the TIS is running
+#'@param optimization If user wants the optimization to happen in TIS
+#'
+#'#TODO need to finish inputing the parameters of the function, return, after we figure out what ones we are including.s
+#'
+
 DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL, keywordInName = FALSE,
                                  withplots = TRUE, optimization = TRUE, saveresults = TRUE, bright = FALSE){
   library("tiff")
@@ -64,11 +74,11 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL, keyw
   ## If all inputs are good, continue
 
 
-  ## Selecting one year ---------------------------------------------------------------
+  ## Selecting certain range ---------------------------------------------------------------
   foundWithKeyword <- grep(keywordInName, x = DigitizationTODO$ImageName)
 
   ## Breaking down the file locations -------------------------------------------------
-#TODO need to get the keywords searched in the file so I know there index
+
 
   for (i in foundWithKeyword) {
     if (ImageDigitizationDFnx6$DigitizedYet[i] == "True") {
