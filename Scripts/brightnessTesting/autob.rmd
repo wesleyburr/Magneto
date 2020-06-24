@@ -11,6 +11,9 @@ library("png")
 library("knitr")
 
 ```
+
+
+
 ```{r}
 
 pngs <- read.table("~/txtFiles/pngsFinal.txt")
@@ -20,13 +23,54 @@ i = 1
 userOpinion  = vector()
 ```
 
+```{r}
+image_import <- function(image,file_loc){
+  readTIFF(paste0(file_loc,"/",image))
+}
+
+```
+
+
+
+
+for (i in 1:38){
+userOpinion[i] <- readline(prompt = "Is this image bright(b), good(g), dim(d)")
+  
+}
+
 
 ```{r}
+brightnessFirst38 <- read.csv("~/Magneto2020/DataCSV/pngTODOTesting.csv", header = TRUE, stringsAsFactors = FALSE)
 
-scan <- readPNG(source = "/home/ben/Magneto2020/ImagesPNG/AGC-H-18881030-18881102.tif.png")
-knitr::include_graphics(as.character(pngs$V1[i]))
-
-userOpinion[i] <- readline(prompt = "Is this image bright(b), good(g), dim(d)")
-
-i = i + 1
+above.8 <- vector()
+total <- vector()
+standard <- vector()
+for (i in 1:38){
+  name <- brightnessFirst38$ImageName[i]
+  path <- brightnessFirst38$ImagePath[i]
+  image <- image_import(name,path)
+  
+  above.8[i] <- length(which(image >= 0.7))
+  total[i] <- length(image)
+  standard[i] <- above.8[i]/total[i]
+}
 ```
+
+```{r}
+xvals = 1:38
+df <- data.frame(standard, opinion)
+plot(x = xvals, y = df$standard, ylim = c(0, 0.06), col = df$opinion)
+legend(x = "topright", legend = paste0("image:", c("bright", "good", "dark")),
+fill = c("black", "green", "red"))
+```
+
+
+```{r}
+hist(image, breaks = 100)
+     #ylim = c(0,4e6))
+#hist(temp2, add = TRUE, border = "red", , breaks = 100)
+#hist(WithGauss, add = TRUE, border = "blue")
+#legend(x = "topright", legend = paste0("image:", c("first", "second", "gauss on 2")),
+#fill = c("black", "red", "blue"))
+```
+
