@@ -20,7 +20,7 @@ pngs <- read.table("~/txtFiles/pngsFinal.txt")
 ```
 ```{r}
 i = 1
-userOpinion  = vector()
+userOpinion1162  = vector()
 ```
 
 ```{r}
@@ -31,46 +31,55 @@ image_import <- function(image,file_loc){
 ```
 
 
+```{r}
 
-
-for (i in 1:38){
-userOpinion[i] <- readline(prompt = "Is this image bright(b), good(g), dim(d)")
+i = 0
+for (i in 1:116){
+userOpinion1162[i] <- readline(prompt = "Is this image bright(1), good(0)")
   
 }
 
+```
 
 ```{r}
-brightnessFirst38 <- read.csv("~/Magneto2020/DataCSV/pngTODOTesting.csv", header = TRUE, stringsAsFactors = FALSE)
+brightnessFirst1162 <- 
+read.csv("~/Magneto2020/DataCSV/pngTODOTesting.csv", header = TRUE, stringsAsFactors = FALSE)
 
 above.8 <- vector()
 total <- vector()
 standard <- vector()
-for (i in 1:38){
-  name <- brightnessFirst38$ImageName[i]
-  path <- brightnessFirst38$ImagePath[i]
+for (i in 1:116){
+  name <- brightnessFirst1162$ImageName[i]
+  path <- brightnessFirst1162$ImagePath[i]
   image <- image_import(name,path)
   
-  above.8[i] <- length(which(image >= 0.7))
+  above.8[i] <- length(which(image >= 0.75))
   total[i] <- length(image)
   standard[i] <- above.8[i]/total[i]
 }
 ```
 
 ```{r}
-xvals = 1:38
-df <- data.frame(standard, opinion)
-plot(x = xvals, y = df$standard, ylim = c(0, 0.06), col = df$opinion)
-legend(x = "topright", legend = paste0("image:", c("bright", "good", "dark")),
-fill = c("black", "green", "red"))
+xvals = 1:116
+Images <- data.frame(standard, userOpinion1162)
+plot(x = xvals, y = Images$standard, col = Images$userOpinion1162)
+legend(x = "bottomright", legend = paste0("image:", c("bright", "good")),
+fill = c("black", "red"))
+abline(v = 10)
 ```
-
 
 ```{r}
-hist(image, breaks = 100)
-     #ylim = c(0,4e6))
-#hist(temp2, add = TRUE, border = "red", , breaks = 100)
-#hist(WithGauss, add = TRUE, border = "blue")
-#legend(x = "topright", legend = paste0("image:", c("first", "second", "gauss on 2")),
-#fill = c("black", "red", "blue"))
+forlm <- data.frame(standard, userOpinion1162)
+lmod <- glm(userOpinion1162 ~ standard, data = forlm, family = binomial)
+summary(lmod)
+plot(lmod, which = 1:6)
 ```
+# Finding the McFadden Pseudo- $R^2$ Value
+
+```{r}
+nullmodel <- glm(userOpinion1162~1, family = binomial,  data = forlm)
+
+1-logLik(lmod)/logLik(nullmodel)
+```
+
 
