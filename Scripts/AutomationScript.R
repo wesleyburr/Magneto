@@ -70,13 +70,12 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL, keyw
     Error <- "Need to add a specific keyword or a common trait of the file names"
     return(stop(Error))
   }
-  browser()
   ## If all inputs are good, continue
 
 
   ## Selecting certain range ---------------------------------------------------------------
   foundWithKeyword <- grep(keywordInName, x = DigitizationTODO$ImageName)
-
+  browser()
   ## Breaking down the file locations -------------------------------------------------
 
 
@@ -97,7 +96,6 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL, keyw
         if (is.na(ErrorMessage)) { # if there is an error message about the data (like there isn't any data)
           if (firstPartOfName == "AGC" || firstPartOfName == "TOR") {
             if (tiffBool) { # means that it is a .tiff file
-              browser()
               source("~/Magneto2020/Scripts/TISForAutomation.R")
               TISForAutomation(oneImagePath, image_name = oneImageName , withplots = withplots,
                            optimization = optimization, saveresults = saveresults, bright = bright)

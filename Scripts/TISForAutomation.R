@@ -79,7 +79,7 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
 
   ## lets us check if the image has the correct contrast
   writeTIFF(image,"testing1_auto.tif")
-  gaussImage <- t( apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+  gaussImage <- abs(t( apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) ))
   browser()
   print("")
   writeTIFF(gaussImage,"testing2_auto.tif")
@@ -103,12 +103,12 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
     gaussImage[gaussImage < 0] <- 0
 
     col_sums <- colSums(gaussImage)
-    row_sums <- rowSums(gaussImage)
-    threshold <- (0.8*mean(row_sums))
+    rowSums <- rowSums(gaussImage)
+    threshold <- (0.8*mean(rowSums))
     print("Identify Peaks is done!")
 
   }
-  else {# this is bright = false
+  else {# this is bright = TRUE
 
     image[image < (quantile(image,0.90))] <- 0
     image[image > 0] <- 1
@@ -122,24 +122,29 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
     gaussImage[gaussImage < 0] <- 0
 
     col_sums <- colSums(gaussImage)
-    row_sums <- rowSums(gaussImage)
-    threshold <- (0.8*mean(row_sums))
+    rowSums <- rowSums(gaussImage)
+    threshold <- (0.8*mean(rowSums))
 
 
-  print("Identify Peaks is done!")
+
   }
 
 
-#plot(rowSums, type = "l", col = "navy")
-#Peaks <- findpeaks(rowSums, npeaks = 4, threshold = threshold , sortstr = FALSE)
-#points(Peaks[, 2], Peaks[, 1], pch = 20, col = "maroon")
-#length(Peaks)
+Peaks <- findpeaks(rowSums, npeaks = 4, threshold = threshold , sortstr = FALSE)
+browser()
+print("Identify Peaks is done!")
 
-#first_peak_start <- Peaks[1,3]
-#first_peak_end <- Peaks[1,4]
+plot(rowSums, type = "l", col = "navy")
+points(x = Peaks[,2], y = Peaks[,1], pch = 20, col = "red")
+abline(v = c(Peaks[,3], Peaks[,4]), lty = 2, col = "green")
 
-#second_peak_start <- try(Peaks[2,3])
-#second_peak_end <- try(Peaks[2,4])
+length(Peaks)
+
+first_peak_start <- Peaks[1,3]
+first_peak_end <- Peaks[1,4]
+
+second_peak_start <- try(Peaks[2,3])
+second_peak_end <- try(Peaks[2,4])
 
 
 
