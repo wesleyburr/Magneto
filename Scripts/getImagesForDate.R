@@ -9,10 +9,11 @@
 
 findPathsForkeyword <- function(path = "~/", keyword = NULL){
   library("fs")
-  if (is.null(keyword) || is.null(path)) {
-    return(print("Must not have null in the specified argument"))
+  if (is.null(keyword)) {
+    return(stop("Must not have null in the specified argument"))
   }
-  word = paste0("*",keyword,"*")
+  word = paste0("*",as.character(keyword),"*")
+
   spathWithKeyword = vector()
   spath = vector
 
@@ -22,9 +23,6 @@ findPathsForkeyword <- function(path = "~/", keyword = NULL){
     for (i in 1:symL) {
       spath <- c(spath, as.character(fs::dir_ls(path = symlinks[i], glob = word, recurse = TRUE, type = "file", fail = FALSE)))
     }
-    #for (i in 2:length(spath)){#first spot is a function name
-     # spathWithKeyword <- c(spathWithKeyword, fs::dir_ls(glob = word, path = spath[[i]], recurse = TRUE, type = "file", fail = FALSE))
-    #}
 
   }
   pathWithKeyword  <- fs::dir_ls(glob = word, path = path, recurse = TRUE, type = "any")
@@ -34,5 +32,5 @@ findPathsForkeyword <- function(path = "~/", keyword = NULL){
 }
 
 
-test <- findPathsForkeyword(keyword = "18900128-18900131")
+test <- findPathsForkeyword(keyword = "AGC--H-19260805-19260807.tif")
 print(test)

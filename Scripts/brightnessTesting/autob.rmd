@@ -20,7 +20,7 @@ pngs <- read.table("~/txtFiles/pngsFinal.txt")
 ```
 ```{r}
 i = 1
-userOpinion1162  = vector()
+
 ```
 
 ```{r}
@@ -31,55 +31,83 @@ image_import <- function(image,file_loc){
 ```
 
 
-```{r}
+userOpinion1162 <- vector()
 
-i = 0
 for (i in 1:116){
 userOpinion1162[i] <- readline(prompt = "Is this image bright(1), good(0)")
   
 }
 
-```
 
 ```{r}
-brightnessFirst1162 <- 
+opinion1_209 = c(userOpinion1162[1:116],userOpinion117_209[117:209])
+```
+
+
+```{r}
+brightnessFirst209 <- 
 read.csv("~/Magneto2020/DataCSV/pngTODOTesting.csv", header = TRUE, stringsAsFactors = FALSE)
 
 above.8 <- vector()
 total <- vector()
 standard <- vector()
-for (i in 1:116){
-  name <- brightnessFirst1162$ImageName[i]
-  path <- brightnessFirst1162$ImagePath[i]
-  image <- image_import(name,path)
+name <- vector()
+path <- vector()
+for (i in 1:209){
+  name[i] <- brightnessFirst209$ImageName[i]
+  path[i] <- brightnessFirst209$ImagePath[i]
+  image <- image_import(name[i],path[i])
   
-  above.8[i] <- length(which(image >= 0.75))
+  above.8[i] <- length(which(image >= 0.8))
   total[i] <- length(image)
   standard[i] <- above.8[i]/total[i]
 }
 ```
 
 ```{r}
-xvals = 1:116
-Images <- data.frame(standard, userOpinion1162)
-plot(x = xvals, y = Images$standard, col = Images$userOpinion1162)
+xvals = 1:209
+Images <- data.frame(standard, opinion1_209)
+plot(x = xvals, y = Images$standard, col = Images$opinion1_209)
 legend(x = "bottomright", legend = paste0("image:", c("bright", "good")),
 fill = c("black", "red"))
 abline(v = 10)
 ```
 
 ```{r}
-forlm <- data.frame(standard, userOpinion1162)
-lmod <- glm(userOpinion1162 ~ standard, data = forlm, family = binomial)
+forlm <- data.frame(standard, opinion1_209)
+forlm <- forlm[-192,]
+lmod <- glm(opinion1_209 ~ standard, data = forlm, family = binomial)
 summary(lmod)
 plot(lmod, which = 1:6)
 ```
 # Finding the McFadden Pseudo- $R^2$ Value
 
 ```{r}
-nullmodel <- glm(userOpinion1162~1, family = binomial,  data = forlm)
+nullmodel <- glm(opinion1_209~1, family = binomial,  data = forlm)
 
 1-logLik(lmod)/logLik(nullmodel)
 ```
 
+```{r}
+coef <- lmod$coefficients
+name <- "AGC--H-19260805-19260807.tif"
+path <- "/home/ben/magneto/Images/AGC-H-19260101-19281230/"
+image <- image_import(name,path)
+
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <- t( apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+plot(image)
+plot(WithGauss)
+  
+  abovespec <- length(which(image >= 0.75))
+  totalspec <- length(image)
+  standardspec <- abovespec/totalspec
+observation <- standardspec
+decision <- exp(coef[1] + coef[2] * observation)/(1 + exp(coef[1] + coef[2] * observation))
+decision
+```
+
+```{r}
+saveRDS(opinion1_209, file = "~/Magneto2020/200624first209opinionsB")
+```
 
