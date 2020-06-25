@@ -105,7 +105,7 @@ nullmodel <- glm(opinion1_291~1, family = binomial,  data = forlm)
 
 ```{r}
 coef <- lmod$coefficients
-name <- "AGC--H-19260827-19260829.tif"
+name <- "AGC--H-19260823-19260825.tif"
 path <- "/home/ben/magneto/Images/AGC-H-19260101-19281230/"
 image <- image_import(name,path)
 
@@ -117,22 +117,34 @@ decision <- exp(coef[1] + coef[2] * observation)/(1 + exp(coef[1] + coef[2] * ob
 decision
 image <- verticalImageCheck(image)
 image2 <- image
-image2[image2 < (1 - mean(image2,na.rm = TRUE))] <- 0
+
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <-  t(apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ))
+
+#this is the defult for bright false
+image2[image2 = NULL] <- 0
+image2[image2 < (1 - mean(image2))] <- 0
     image2[image2 > 0] <- 1
-  
+
+#this is for bright is true  
 image[image = NULL] <- 0
 image[image < (quantile(image,0.91))] <- 0
 image[image > 0] <- 1
 
-source("~/Magneto2020/Scripts/BreakoutOptimization.R")
-WithGauss <-  t(apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ))
-WithGauss2 <-  t(apply(image2, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ))
 
+#WithGauss2 <-  t(apply(image2, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ))
+#this was in there but doesnt do anything from what I can tell..
+#WithGauss[0:100, ] <- mean(WithGauss)
+ #  WithGauss[(nrow(WithGauss) - 60):(nrow(WithGauss)),] <- mean(WithGauss)
+  # WithGauss[WithGauss < 0] <- 0
+#WithGauss2[0:100, ] <- mean(WithGauss2)
+ #  WithGauss2[(nrow(WithGauss2) - 60):(nrow(WithGauss2)),] <- mean(WithGauss2)
+  # WithGauss2[WithGauss2 < 0] <- 0
 plot(image)
 plot(image2)
 plot(WithGauss)
 
-plot(WithGauss2)
+#plot(WithGauss2)
   
 ```
 
