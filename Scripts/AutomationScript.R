@@ -80,10 +80,10 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL, keyw
 
 
   for (i in foundWithKeyword) {
-    if (ImageDigitizationDFnx6$DigitizedYet[i] == "True") {
+    if (ImageDigitizationDFnx6$DigitizedYet[i] == "TRUE") {
       print(paste0(ImageDigitizationDFnx6$ImageName[i], " has been digitized"))
     }
-    if (ImageDigitizationDFnx6$DigitizedYet[i] == "False") {
+    if (ImageDigitizationDFnx6$DigitizedYet[i] == "FALSE") {
       oneImagePath <- as.character(ImageDigitizationDFnx6$ImagePath[i])
       oneImageName <- as.character(ImageDigitizationDFnx6$ImageName[i])
 
