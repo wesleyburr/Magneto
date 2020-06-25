@@ -66,10 +66,11 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
     image <- classArrayEdit(image)
 
   }
-  if (bright == TRUE) {
+  #removed this because I dont see why its relivent.. TODO
+  #if (bright == TRUE) {
 
-    image <- brightImages(image)
-  }
+   # image <- brightImages(image)
+  #}
 
 
 

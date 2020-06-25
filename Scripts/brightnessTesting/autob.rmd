@@ -9,7 +9,22 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library("png")
 library("knitr")
+library("tiff")
 
+```
+```{r}
+verticalImageCheck <- function(magnetogram){
+    ncol_magnetogram <- ncol(magnetogram)
+    nrow_magnetogram <- nrow(magnetogram)
+
+    if (ncol_magnetogram < nrow_magnetogram) {
+      retVal <- apply(magnetogram,1,rev)
+    }
+    else {
+      retVal <- magnetogram
+    }
+    return(retVal)
+}
 ```
 
 
@@ -40,12 +55,12 @@ userOpinion0_1163[i] <- readline(prompt = "Is this image bright(1), good(0)")
 
 
 ```{r}
-opinion1_292 = c(userOpinion0_1163,userOpinion117_209[117:208], userOpinion209_292)
+opinion1_291 = c(userOpinion0_1163,userOpinion117_209[117:208], userOpinion209_291)
 ```
 
 
 ```{r}
-brightnessFirst292 <- 
+brightnessFirst291 <- 
 read.csv("~/Magneto2020/DataCSV/pngTODOTesting.csv", header = TRUE, stringsAsFactors = FALSE)
 
 above.8 <- vector()
@@ -53,9 +68,9 @@ total <- vector()
 standard <- vector()
 name <- vector()
 path <- vector()
-for (i in 1:292){
-  name[i] <- brightnessFirst292$ImageName[i]
-  path[i] <- brightnessFirst292$ImagePath[i]
+for (i in 1:291){
+  name[i] <- brightnessFirst291$ImageName[i]
+  path[i] <- brightnessFirst291$ImagePath[i]
   image <- image_import(name[i],path[i])
   
   above.8[i] <- length(which(image >= 0.80))
@@ -65,49 +80,86 @@ for (i in 1:292){
 ```
 
 ```{r}
-xvals = 1:292
-Images <- data.frame(standard, opinion1_292)
-plot(x = xvals, y = Images$standard, col = Images$opinion1_292, ylim = c(0, 0.2))
+xvals = 1:291
+Images <- data.frame(standard, opinion1_291)
+plot(x = xvals, y = Images$standard, col = Images$opinion1_291, ylim = c(0, 0.2))
 legend(x = "bottomright", legend = paste0("image:", c("good", "bright")),
 fill = c("black", "red"))
 abline(v = 14)
 ```
 
 ```{r}
-forlm <- data.frame(standard, opinion1_292)
+forlm <- data.frame(standard, opinion1_291)
 forlm <- forlm[-192,]
-lmod <- glm(opinion1_292 ~ standard, data = forlm, family = binomial)
+lmod <- glm(opinion1_291 ~ standard, data = forlm, family = binomial)
 summary(lmod)
 plot(lmod, which = 1:6)
 ```
 # Finding the McFadden Pseudo- $R^2$ Value
 
 ```{r}
-nullmodel <- glm(opinion1_292~1, family = binomial,  data = forlm)
+nullmodel <- glm(opinion1_291~1, family = binomial,  data = forlm)
 
 1-logLik(lmod)/logLik(nullmodel)
 ```
 
 ```{r}
 coef <- lmod$coefficients
-name <- "AGC--H-19270503-19270505.tif"
-path <- "/home/ben/magneto/Images/Range/AGC-H-19260101-19281230/"
+name <- "AGC--H-19260827-19260829.tif"
+path <- "/home/ben/magneto/Images/AGC-H-19260101-19281230/"
 image <- image_import(name,path)
 
-source("~/Magneto2020/Scripts/BreakoutOptimization.R")
-WithGauss <-  apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) 
-plot(image)
-plot(WithGauss)
-  
-  abovespec <- length(which(image >= 0.80))
+ abovespec <- length(which(image >= 0.80))
   totalspec <- length(image)
   standardspec <- abovespec/totalspec
 observation <- standardspec
 decision <- exp(coef[1] + coef[2] * observation)/(1 + exp(coef[1] + coef[2] * observation))
 decision
+image <- verticalImageCheck(image)
+image2 <- image
+image2[image2 < (1 - mean(image2,na.rm = TRUE))] <- 0
+    image2[image2 > 0] <- 1
+  
+image[image = NULL] <- 0
+image[image < (quantile(image,0.91))] <- 0
+image[image > 0] <- 1
+
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+WithGauss <-  t(apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ))
+WithGauss2 <-  t(apply(image2, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ))
+
+plot(image)
+plot(image2)
+plot(WithGauss)
+
+plot(WithGauss2)
+  
+```
+
+
+
+```{r}
+Image <- 1/Image
+      if(min(Image) == 1){
+        Image <- Image - 1
+        Image <- Image/max(Image)
+}
+
+Image[Image < (quantile(Image,0.90))] <- 0
+      Image[Image > 0] <- 1
+
+plot(Image)
+
+
+      ## Identify Peaks +++++
+      
+      withGauss[0:100,] <- mean(withGauss)
+      withGauss[(nrow(withGauss) - 60):(nrow(withGauss)),] <- mean(withGauss)
+      withGauss[withGauss < 0] <- 0
+
+      withGauss[withGauss < 0] <- 0
 ```
 
 ```{r}
-saveRDS(opinion1_292, file = "~/Magneto2020/2006241-209opinions2B")
+saveRDS(opinion1_291, file = "~/Magneto2020/2006241-291opinionsB")
 ```
-
