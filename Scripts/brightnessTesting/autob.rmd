@@ -31,21 +31,21 @@ image_import <- function(image,file_loc){
 ```
 
 
-userOpinion1162 <- vector()
+userOpinion0_1163 <- vector()
 
 for (i in 1:116){
-userOpinion1162[i] <- readline(prompt = "Is this image bright(1), good(0)")
+userOpinion0_1163[i] <- readline(prompt = "Is this image bright(1), good(0)")
   
 }
 
 
 ```{r}
-opinion1_209 = c(userOpinion1162[1:116],userOpinion117_209[117:209])
+opinion1_292 = c(userOpinion0_1163,userOpinion117_209[117:208], userOpinion209_292)
 ```
 
 
 ```{r}
-brightnessFirst209 <- 
+brightnessFirst292 <- 
 read.csv("~/Magneto2020/DataCSV/pngTODOTesting.csv", header = TRUE, stringsAsFactors = FALSE)
 
 above.8 <- vector()
@@ -53,53 +53,53 @@ total <- vector()
 standard <- vector()
 name <- vector()
 path <- vector()
-for (i in 1:209){
-  name[i] <- brightnessFirst209$ImageName[i]
-  path[i] <- brightnessFirst209$ImagePath[i]
+for (i in 1:292){
+  name[i] <- brightnessFirst292$ImageName[i]
+  path[i] <- brightnessFirst292$ImagePath[i]
   image <- image_import(name[i],path[i])
   
-  above.8[i] <- length(which(image >= 0.8))
+  above.8[i] <- length(which(image >= 0.80))
   total[i] <- length(image)
   standard[i] <- above.8[i]/total[i]
 }
 ```
 
 ```{r}
-xvals = 1:209
-Images <- data.frame(standard, opinion1_209)
-plot(x = xvals, y = Images$standard, col = Images$opinion1_209)
-legend(x = "bottomright", legend = paste0("image:", c("bright", "good")),
+xvals = 1:292
+Images <- data.frame(standard, opinion1_292)
+plot(x = xvals, y = Images$standard, col = Images$opinion1_292, ylim = c(0, 0.2))
+legend(x = "bottomright", legend = paste0("image:", c("good", "bright")),
 fill = c("black", "red"))
-abline(v = 10)
+abline(v = 14)
 ```
 
 ```{r}
-forlm <- data.frame(standard, opinion1_209)
+forlm <- data.frame(standard, opinion1_292)
 forlm <- forlm[-192,]
-lmod <- glm(opinion1_209 ~ standard, data = forlm, family = binomial)
+lmod <- glm(opinion1_292 ~ standard, data = forlm, family = binomial)
 summary(lmod)
 plot(lmod, which = 1:6)
 ```
 # Finding the McFadden Pseudo- $R^2$ Value
 
 ```{r}
-nullmodel <- glm(opinion1_209~1, family = binomial,  data = forlm)
+nullmodel <- glm(opinion1_292~1, family = binomial,  data = forlm)
 
 1-logLik(lmod)/logLik(nullmodel)
 ```
 
 ```{r}
 coef <- lmod$coefficients
-name <- "AGC--H-19260805-19260807.tif"
-path <- "/home/ben/magneto/Images/AGC-H-19260101-19281230/"
+name <- "AGC--H-19270503-19270505.tif"
+path <- "/home/ben/magneto/Images/Range/AGC-H-19260101-19281230/"
 image <- image_import(name,path)
 
 source("~/Magneto2020/Scripts/BreakoutOptimization.R")
-WithGauss <- t( apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) )
+WithGauss <-  apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) 
 plot(image)
 plot(WithGauss)
   
-  abovespec <- length(which(image >= 0.75))
+  abovespec <- length(which(image >= 0.80))
   totalspec <- length(image)
   standardspec <- abovespec/totalspec
 observation <- standardspec
@@ -108,6 +108,6 @@ decision
 ```
 
 ```{r}
-saveRDS(opinion1_209, file = "~/Magneto2020/200624first209opinionsB")
+saveRDS(opinion1_292, file = "~/Magneto2020/2006241-209opinions2B")
 ```
 
