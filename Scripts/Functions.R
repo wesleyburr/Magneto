@@ -73,3 +73,85 @@ verticalImageCheck <- function(array){
   }
   return(retVal)
 }
+
+#' Uses a data frame user imputed into pracma to calculate the first 4 starts and ends for the peaks
+findingPossiblePeaks <- function(Pracmapeaks, rowSums){
+
+  first_peak_start <- Pracmapeaks[1,3]
+  first_peak_end <- Pracmapeaks[1,4]
+  second_peak_start <- try(Pracmapeaks[2,3])
+  second_peak_end <- try(Pracmapeaks[2,4])
+  if ("try-error" %in% class(second_peak_start)) {next}
+
+
+  if (length(Pracmapeaks <= 8)) {
+    # Have to find both points, lots of fun
+    third_peak_start <- first_peak_start
+    third_peak_end <- first_peak_end
+    fourth_peak_start <- second_peak_start
+    fourth_peak_end <- second_peak_end
+
+    #TODO For now, just guess.....
+    first_peak_start <- 700
+    first_peak_end <- 800
+
+    second_peak_start <- 950
+    second_peak_end <- 1050
+
+  }else {
+    rowSums[first_peak_start]
+    if (length(Pracmapeaks) < 16) {
+      #Only 3 Pracmapeaks found, need to check which of the two traces is missing
+      #If first peak is missing, it should be close to  peak 2 - (peak4 - peak3), which will have different names
+      #Check first
+      if (rowSums[Pracmapeaks[1,2] - (Pracmapeaks[3,2]-Pracmapeaks[2,2])] > rowSums[0.5*Pracmapeaks[1,2]]) {
+        first_peak_start_old <- first_peak_start
+        first_peak_end_old <- first_peak_end
+        second_peak_start_old <- second_peak_start
+        second_peak_end_old <- second_peak_end
+        third_peak_start_old <- third_peak_start
+        third_peak_end_old <- third_peak_end
+
+        first_peak_start <- Pracmapeaks[1,2] - (Pracmapeaks[3,2]-Pracmapeaks[2,2]) - abs(Pracmapeaks[1,2] - Pracmapeaks[1,3])
+        first_peak_end <- Pracmapeaks[1,2] - (Pracmapeaks[3,2]-Pracmapeaks[2,2
+        ]) + abs(Pracmapeaks[1,2] - Pracmapeaks[1,4])
+        second_peak_start <- first_peak_start_old
+        second_peak_end <- first_peak_end_old
+        third_peak_start <- second_peak_start_old
+        third_peak_end <- second_peak_end_old
+        fourth_peak_start <- third_peak_start_old
+        fourth_peak_end <- third_peak_end_old
+      }
+      #Check for second
+      if(rowSums[Pracmapeaks[1,2] + (Pracmapeaks[3,2]-Pracmapeaks[2,2])] > rowSums[0.5*Pracmapeaks[1,2]]){
+        first_peak_start_old <- first_peak_start
+        first_peak_end_old <- first_peak_end
+        second_peak_start_old <- second_peak_start
+        second_peak_end_old <- second_peak_end
+        third_peak_start_old <- third_peak_start
+        third_peak_end_old <- third_peak_end
+
+        first_peak_start <- first_peak_start_old
+        first_peak_end <- first_peak_end_old
+        second_peak_start <- Pracmapeaks[1,2] + (Pracmapeaks[3,2]-Pracmapeaks[2,2]) - abs(Pracmapeaks[1,2]-Pracmapeaks[1,3])
+        second_peak_end <- Pracmapeaks[1,2] + (Pracmapeaks[3,2]-Pracmapeaks[2,2]) + abs(Pracmapeaks[1,2] - Pracmapeaks[1,4])
+        third_peak_start <- second_peak_start_old
+        third_peak_end <- second_peak_end_old
+        fourth_peak_start <- third_peak_start_old
+        fourth_peak_end <- third_peak_end_old
+      }
+      Pracmapeaks[1,2] + Pracmapeaks[3,2]-Pracmapeaks[2,2] - (Pracmapeaks[1,2]-Pracmapeaks[1,3])
+    }else{
+      third_peak_start <- Pracmapeaks[3,3]
+      third_peak_end <- Pracmapeaks[3,4]
+      fourth_peak_start <- Pracmapeaks[4,3]
+      fourth_peak_end <- Pracmapeaks[4,4]
+    }
+  }
+  allPeaks <- data.frame(firstPeak = c(first_peak_start, first_peak_end),
+                         secondPeak = c(second_peak_start, second_peak_end),
+                         thirdPeak = c(third_peak_start, third_peak_end),
+                         fourthPeak = c(fourth_peak_start, fourth_peak_end),
+                         row.names = c("Start","End"))
+                         return(allPeaks)
+}
