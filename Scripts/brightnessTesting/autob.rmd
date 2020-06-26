@@ -46,21 +46,21 @@ image_import <- function(image,file_loc){
 ```
 
 
-userOpinion0_1163 <- vector()
+userOpinion292_3922 <- vector()
 
-for (i in 1:116){
-userOpinion0_1163[i] <- readline(prompt = "Is this image bright(1), good(0)")
+for (i in 292:392){
+userOpinion292_3922[i] <- readline(prompt = "Is this image bright(1), good(0)")
   
 }
 
 
 ```{r}
-opinion1_291 = c(userOpinion0_1163,userOpinion117_209[117:208], userOpinion209_291)
+opinion1_392 = c(userOpinion0_1163,userOpinion117_209[117:208], userOpinion209_291,userOpinion292_392[292:392])
 ```
 
 
 ```{r}
-brightnessFirst291 <- 
+brightnessFirst392 <- 
 read.csv("~/Magneto2020/DataCSV/pngTODOTesting.csv", header = TRUE, stringsAsFactors = FALSE)
 
 above.8 <- vector()
@@ -68,7 +68,7 @@ total <- vector()
 standard <- vector()
 name <- vector()
 path <- vector()
-for (i in 1:291){
+for (i in 1:392){
   name[i] <- brightnessFirst291$ImageName[i]
   path[i] <- brightnessFirst291$ImagePath[i]
   image <- image_import(name[i],path[i])
@@ -80,25 +80,25 @@ for (i in 1:291){
 ```
 
 ```{r}
-xvals = 1:291
-Images <- data.frame(standard, opinion1_291)
-plot(x = xvals, y = Images$standard, col = Images$opinion1_291, ylim = c(0, 0.2))
+xvals = 1:392
+Images <- data.frame(standard, opinion1_392)
+plot(x = xvals, y = Images$standard, col = Images$opinion1_392, ylim = c(0, 0.2))
 legend(x = "bottomright", legend = paste0("image:", c("good", "bright")),
 fill = c("black", "red"))
 abline(v = 14)
 ```
 
 ```{r}
-forlm <- data.frame(standard, opinion1_291)
+forlm <- data.frame(standard, opinion1_392)
 forlm <- forlm[-192,]
-lmod <- glm(opinion1_291 ~ standard, data = forlm, family = binomial)
+lmod <- glm(opinion1_392 ~ standard, data = forlm, family = binomial)
 summary(lmod)
 plot(lmod, which = 1:6)
 ```
 # Finding the McFadden Pseudo- $R^2$ Value
 
 ```{r}
-nullmodel <- glm(opinion1_291~1, family = binomial,  data = forlm)
+nullmodel <- glm(opinion1_392~1, family = binomial,  data = forlm)
 
 1-logLik(lmod)/logLik(nullmodel)
 ```
@@ -173,5 +173,5 @@ plot(Image)
 ```
 
 ```{r}
-saveRDS(opinion1_291, file = "~/Magneto2020/2006241-291opinionsB")
+saveRDS(opinion1_392, file = "~/Magneto2020/2006261-392opinionsB")
 ```
