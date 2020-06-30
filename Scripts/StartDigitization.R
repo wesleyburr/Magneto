@@ -3,7 +3,7 @@ PWD <- setwd("~/Magneto2020/")
 
 DigitizationTODO <- read.csv("~/Magneto2020/DataCSV/TODOBatch5.csv", header = FALSE)
 names(DigitizationTODO) <- c("ImagePath", "ImageName", "DigitizedYet", "DigitizationPath", "DigitizationName", "ErrorWhenDigitized")
-Range = "AGC--H-19260823-19260825.tif"
+Range = "AGC--H-19260902-19260904.tif"
 
 ##--------------------------------------------------------------------------------------
 

@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library("png")
 library("knitr")
 library("tiff")
+library("rtiff")
 
 ```
 ```{r}
@@ -57,6 +58,9 @@ userOpinion292_3922[i] <- readline(prompt = "Is this image bright(1), good(0)")
 ```{r}
 opinion1_392 = c(userOpinion0_1163,userOpinion117_209[117:208], userOpinion209_291,userOpinion292_392[292:392])
 ```
+```{r}
+opinion1_392<-readRDS("~/Magneto2020/2006261-392opinionsB")
+```
 
 
 ```{r}
@@ -69,8 +73,8 @@ standard <- vector()
 name <- vector()
 path <- vector()
 for (i in 1:392){
-  name[i] <- brightnessFirst291$ImageName[i]
-  path[i] <- brightnessFirst291$ImagePath[i]
+  name[i] <- brightnessFirst392$ImageName[i]
+  path[i] <- brightnessFirst392$ImagePath[i]
   image <- image_import(name[i],path[i])
   
   above.8[i] <- length(which(image >= 0.80))
@@ -105,7 +109,7 @@ nullmodel <- glm(opinion1_392~1, family = binomial,  data = forlm)
 
 ```{r}
 coef <- lmod$coefficients
-name <- "AGC--H-19260823-19260825.tif"
+name <- "AGC--H-19260902-19260904.tif"
 path <- "/home/ben/magneto/Images/AGC-H-19260101-19281230/"
 image <- image_import(name,path)
 
@@ -174,4 +178,5 @@ plot(Image)
 
 ```{r}
 saveRDS(opinion1_392, file = "~/Magneto2020/2006261-392opinionsB")
+readRDS("~/Magneto2020/2006261-392opinionsB")
 ```

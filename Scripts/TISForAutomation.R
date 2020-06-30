@@ -133,14 +133,13 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
 
     col_sums <- colSums(gaussImage)
     rowSums <- rowSums(gaussImage)^2
-    threshold <- (0.8*mean(rowSums))
-
-
+    threshold <- (0.4*(mean(rowSums)))
+    fivePercent <- 0.05*max(rowSums)
 
   }
 
 browser()
-Peaks <- findpeaks(rowSums, npeaks = 4, threshold = threshold , minpeakdistance = 20, sortstr = FALSE)
+Peaks <- findpeaks(rowSums, npeaks = 4, threshold = threshold , sortstr = FALSE, minpeakheight = fivePercent)
 
 print("Identify Peaks is done!")
 
@@ -155,7 +154,9 @@ length(Peaks)
 #argument is of length zero
 PossiblePeaks <- findingPossiblePeaks(Peaks,rowSums = rowSums)
 
-
+plot(rowSums, type = "l", col = "navy")
+points(x = Peaks[,2], y = Peaks[,1], pch = 20, col = "red")
+abline(v = c(PossiblePeaks[1,], PossiblePeaks[2,]), lty = 2, col = "green")
 
 #Calculate area between main peaks
 
