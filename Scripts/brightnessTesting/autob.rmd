@@ -99,7 +99,7 @@ lmod <- glm(opinion1_392 ~ standard, data = forlm, family = binomial)
 summary(lmod)
 plot(lmod, which = 1:6)
 ```
-# Finding the McFadden Pseudo- $R^2$ Value
+# Finding the McFadden Pseudo- $R^2$ Value 0.2573778
 
 ```{r}
 nullmodel <- glm(opinion1_392~1, family = binomial,  data = forlm)
@@ -109,8 +109,8 @@ nullmodel <- glm(opinion1_392~1, family = binomial,  data = forlm)
 
 ```{r}
 coef <- lmod$coefficients
-name <- "AGC--H-19260902-19260904.tif"
-path <- "/home/ben/magneto/Images/AGC-H-19260101-19281230/"
+name <- "AGC--H-19260117-19260119.tif"
+path <- "/home/ben/magneto/Images/AGC-H-19260101-19281230"
 image <- image_import(name,path)
 
  abovespec <- length(which(image >= 0.80))
@@ -119,6 +119,8 @@ image <- image_import(name,path)
 observation <- standardspec
 decision <- exp(coef[1] + coef[2] * observation)/(1 + exp(coef[1] + coef[2] * observation))
 decision
+test <- brightProb(image)
+test
 image <- verticalImageCheck(image)
 image2 <- image
 
@@ -180,3 +182,24 @@ plot(Image)
 saveRDS(opinion1_392, file = "~/Magneto2020/2006261-392opinionsB")
 readRDS("~/Magneto2020/2006261-392opinionsB")
 ```
+
+
+
+```{r}
+#'Using a logistic regression to find coefficients, uses the result to compute a probability of the image being #'bright (392 observations) with McFadden Pseudo- $R^2$ Value 0.2573778
+#'
+brightProb <- function(image){
+  beta0 <- -2.774327
+  beta1 <- 51.91687
+  
+  aboveLen <- length(which(image >= 0.80))
+  totalLen <- length(image)
+  standardizedLen <- aboveLen/totalLen
+  decision <- exp(beta0 + beta1 * standardizedLen)/(1 + exp(beta0 + beta1 * standardizedLen))
+  return(decision)
+}
+
+```
+
+
+
