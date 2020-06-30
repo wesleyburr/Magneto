@@ -155,3 +155,19 @@ findingPossiblePeaks <- function(Pracmapeaks, rowSums){
                          row.names = c("Start","End"))
                          return(allPeaks)
 }
+
+#'Using a logistic regression to find coefficients, uses the result to compute a probability
+#'of the image being #'bright (392 observations) with McFadden Pseudo- $R^2$ Value 0.2573778
+#'@param matrix of image points representing the brightness of that pixel
+#'@return The probability of the image being bright
+#'@export
+brightProb <- function(image){
+  beta0 <- -2.774327
+  beta1 <- 51.91687
+
+  aboveLen <- length(which(image >= 0.80))
+  totalLen <- length(image)
+  standardizedLen <- aboveLen/totalLen
+  decision <- exp(beta0 + beta1 * standardizedLen)/(1 + exp(beta0 + beta1 * standardizedLen))
+  return(decision)
+}
