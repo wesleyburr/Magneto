@@ -17,13 +17,13 @@ write.csv(rowSums, file = "~/Magneto2020/rowSums19260902.csv")
 threshold <- (0.4*(mean(rowSums)))
 fivePercent <- 0.05*max(rowSums)
 
-pracemaPeaks <- findpeaks(rowSums, npeaks = 4, threshold = threshold , sortstr = FALSE, minpeakheight = fivePercent)
-pracemaPeaks
+pracemaPeaks <- findpeaks(rowSums, npeaks = 4, threshold = 0.05, sortstr = FALSE, minpeakheight = fivePercent)
+pracemaPeaks# dont like this because it is to arbetrary
 
 plot(rowSums, type = "l", col = "navy")
-points(x = Peaks[,2], y = Peaks[,1], pch = 20, col = "red")
-abline(v = c(Peaks[,3], Peaks[,4]), lty = 2, col = "green")
-
+points(x = pracemaPeaks[,2], y = pracemaPeaks[,1], pch = 20, col = "red")
+abline(v = c(pracemaPeaks[,3], pracemaPeaks[,4]), lty = 2, col = "green")
+abline(v = c(816+1, 1085+1, 1442+1, 1442+1, 1698+1), lty = 2, col = "red")
 
 ```
 
@@ -32,6 +32,7 @@ max(rowSums)
 which(rowSums == max(rowSums))
 ```
 ## check to see if we got all the peaks
+
 
 ```{r}
 checkingPeaks <- function(pracemaPeaks, rowSums, numPeaksWanted){
@@ -68,6 +69,120 @@ checkingPeaks <- function(pracemaPeaks, rowSums, numPeaksWanted){
 ```
 
 ```{r}
+library(reticulate)
+#conda_install("r-reticulate", "scipy")
+source_python("~/Magneto2020/Scripts/findPeaks.py")
+peaks <- FindingPeaks(rowSums, fivePercent)
+```
+
+```{r}
+library("rtiff")
+image_import <- function(image,file_loc){
+    readTIFF(paste0(file_loc,"/",image))
+}
+
+
+ImageTesting <- read.csv("~/Magneto2020/DataCSV/pngTODOTesting.csv", header = TRUE, stringsAsFactors = FALSE)
+
+
+
+
+fileloc <- as.character(ImageTesting$ImagePath[i])
+imageName <- as.character(ImageTesting$ImageName[i])
+library(reticulate)
+
+image <- image_import(imageName, fileloc)
+source("~/Magneto2020/Scripts/Functions.R")
+  probabilityB <- brightProb(image)
+  
+  image <- verticalImageCheck(image)
+  
+  if (bright == FALSE) {
+
+    gaussImage <- abs(t( apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) ))
+    #writeTIFF(gaussImage,"testing2_auto.tif")
+
+    image[image = NULL] <- 0
+    image[image < (1 - mean(image,na.rm = TRUE))] <- 0
+    image[image > 0] <- 1
+    #writeTIFF(image,"testing3.tif")
+
+    
+    gaussImage[0:100,] <- mean(gaussImage)
+    gaussImage[(nrow(gaussImage) - 125):(nrow(gaussImage)),] <- mean(gaussImage)
+    gaussImage[gaussImage < 0] <- 0
+
+    col_sums <- colSums(gaussImage)
+    rowSums <- rowSums(gaussImage)^2
+    threshold <- (0.8*mean(rowSums))
+    fivePercent <- (sum(gaussImage[(nrow(gaussImage) - 126),]) + 1)^2#0.05*max(rowSums)
+    distance <- 100
+    
+    source_python("~/Magneto2020/Scripts/findPeaks.py")
+    peaks <- FindingPeaks(rowSums, fivePercent, distance)
+    peaks[[1]] <- peaks[[1]] + 1
+  }
+  if(bright == TRUE) {# this is bright = TRUE
+    
+
+    image[image = NULL] <- 0
+    image[image < (quantile(image,0.95))] <- 0
+    image[image > 0] <- 1
+    gaussImage <-  t(apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ))
+    #writeTIFF(gaussImage,"testing2_auto.tif")
+
+    print("")
+    print("===== Identify Peaks With Brightness =====")
+
+
+    gaussImage[0:100, ] <- mean(gaussImage)
+    gaussImage[(nrow(gaussImage)-125):nrow(gaussImage),] <- mean(gaussImage)
+    #gaussImage[(nrow(gaussImage) - 75):(nrow(gaussImage)),] <- mean(gaussImage)
+    gaussImage[gaussImage < 0] <- 0
+
+    col_sums <- colSums(gaussImage)
+    rowSums <- rowSums(gaussImage)^2
+    threshold <- (0.4*(mean(rowSums)))
+    fivePercent <- 0.015*max(rowSums)#(sum(gaussImage[(nrow(gaussImage) - 126),]) + 1)^2
+    distance <- 50
+    
+    source_python("~/Magneto2020/Scripts/findPeaks.py")
+    peaks <- FindingPeaks(rowSums, fivePercent, distance)
+    peaks[[1]] <- peaks[[1]] + 1
+
+  }
+  
+
+  
+  highestFourPeaksIndex <- vector()
+  fourPeaksHeight <- vector()
+  if (length(peaks[[1]]) > 4) {
+    sorting <- sort(peaks[[2]]$peak_heights, decreasing = TRUE, index.return = TRUE)
+    for (j in 1:4) {
+      highestFourPeaksIndex <- c(highestFourPeaksIndex, peaks[[1]][sorting$ix[j]])
+      fourPeaksHeight <- c(fourPeaksHeight, peaks[[2]]$peak_heights[sorting$ix[j]])
+    }
+  }
+  if (length(peaks[[1]]) <= 4) {
+    highestFourPeaksIndex <- peaks[[1]]
+    fourPeaksHeight <- peaks[[2]]$peak_heights
+  }
+ 
+  imageName
+  probabilityB
+  
+  plot(rowSums, type = "l")
+  points(x = highestFourPeaksIndex, y = fourPeaksHeight, pch = 20, col = "red")
+ 
 
 ```
 
+```{r}
+i = i+1
+```
+```{r}
+bright = FALSE
+```
+```{r}
+bright = TRUE
+```
