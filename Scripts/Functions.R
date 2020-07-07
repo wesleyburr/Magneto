@@ -199,7 +199,7 @@ image_import <- function(image,file_loc){
     return(readTIFF(paste0(file_loc,"/",image)))
   }
   else{
-    warning(paste0("file ", image, " is not a .tif or .tiff" ))
+    stop(paste0("file ", image, " is not a .tif or .tiff" ))
   }
 
 }
