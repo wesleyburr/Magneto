@@ -159,9 +159,10 @@ findingPossiblePeaks <- function(Pracmapeaks, rowSums){
 #'Using a logistic regression to find coefficients, uses the result to compute a probability
 #'of the image being #'bright (392 observations) with McFadden Pseudo- $R^2$ Value 0.2573778
 #'@param matrix of image points representing the brightness of that pixel
-#'@return The probability of the image being bright
+#'@param cutoffProbability The probability cut off for the desision of an image being bright
+#'@return The decision of the image being bright
 #'@export
-brightProb <- function(image){
+brightProb <- function(image, cutoffProbability = 0.5){
   beta0 <- -2.774327
   beta1 <- 51.91687
 
@@ -169,7 +170,14 @@ brightProb <- function(image){
   totalLen <- length(image)
   standardizedLen <- aboveLen/totalLen
   decision <- exp(beta0 + beta1 * standardizedLen)/(1 + exp(beta0 + beta1 * standardizedLen))
-  return(decision)
+
+  if (decision >= cutoffProbability){
+    bright = TRUE
+  }
+  else {
+    bright = FALSE
+  }
+  return(bright)
 }
 
 #'checks to see if the last part of a file name is .tif or .tiff *It doesn't split any part of the name*
@@ -204,5 +212,45 @@ image_import <- function(image,file_loc){
 
 }
 
+#'Checks the list of peaks for any flairs in the photos at start and end, they are removed
+#'@param FindingPeaksVector the resulting vector from FindingPeaks
+#'@param rowSums of the dataframe
+#'@return void
+Edge_Peaks_Check <- function(FindingPeaksVector, rowSums){
+  for (k in 1:length(FindingPeaksVector[[1]])) {
+    if (rowSums[FindingPeaksVector[[1]][k] + 10] == rowSums[length(rowSums)]) {
+
+      FindingPeaksVector[[1]] <- FindingPeaksVector[[1]][-k]
+      FindingPeaksVector[[2]]$peak_heights <- FindingPeaksVector[[2]]$peak_heights[-k]
+
+    }
+    if (rowSums[FindingPeaksVector[[1]][k] - 10] == rowSums[1]) {
+
+      FindingPeaksVector[[1]] <- FindingPeaksVector[[1]][-k]
+      FindingPeaksVector[[2]]$peak_heights <- FindingPeaksVector[[2]]$peak_heights[-k]
+
+    }
+  }
+}
 
 
+
+Four_Peaks <- function(findingPeaksVector){
+
+  highestFourPeaksIndex <- vector()
+  fourPeaksHeight <- vector()
+  if (length(findingPeaksVector[[1]]) > 4) {
+    sorting <- sort(findingPeaksVector[[2]]$peak_heights, decreasing = TRUE, index.return = TRUE)
+    for (j in 1:4) {
+      highestFourPeaksIndex <- c(highestFourPeaksIndex, findingPeaksVector[[1]][sorting$ix[j]])
+      fourPeaksHeight <- c(fourPeaksHeight, findingPeaksVector[[2]]$peak_heights[sorting$ix[j]])
+    }
+  }
+  if (length(findingPeaksVector[[1]]) <= 4) {
+    highestFourPeaksIndex <- findingPeaksVector[[1]]
+    fourPeaksHeight <- findingPeaksVector[[2]]$peak_heights
+  }
+  fourPeaks <- data.frame(highestFourPeaksIndex, fourPeaksHeight)
+  names(fourPeaks) <-  c("PeakIndex", "PeakHeight")
+  return(fourPeaks)
+}
