@@ -59,7 +59,7 @@ userOpinion292_3922[i] <- readline(prompt = "Is this image bright(1), good(0)")
 opinion1_392 = c(userOpinion0_1163,userOpinion117_209[117:208], userOpinion209_291,userOpinion292_392[292:392])
 ```
 ```{r}
-opinion1_392<-readRDS("~/Magneto2020/2006261-392opinionsB")
+opinion1_392<-readRDS("~/Magneto2020/BrightnessTesting/2006261-392opinionsB")
 ```
 
 

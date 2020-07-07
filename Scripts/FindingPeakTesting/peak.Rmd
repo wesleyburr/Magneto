@@ -109,13 +109,13 @@ source("~/Magneto2020/Scripts/Functions.R")
 
     
     gaussImage[0:100,] <- mean(gaussImage)
-    gaussImage[(nrow(gaussImage) - 125):(nrow(gaussImage)),] <- mean(gaussImage)
+    gaussImage[(nrow(gaussImage) - 60):(nrow(gaussImage)),] <- mean(gaussImage)
     gaussImage[gaussImage < 0] <- 0
 
     col_sums <- colSums(gaussImage)
     rowSums <- rowSums(gaussImage)^2
     threshold <- (0.8*mean(rowSums))
-    fivePercent <- (sum(gaussImage[(nrow(gaussImage) - 126),]) + 1)^2#0.05*max(rowSums)
+    fivePercent <- 0.05*max(rowSums) #(sum(gaussImage[(nrow(gaussImage) - 130),]) + 1)^2
     distance <- 100
     
     source_python("~/Magneto2020/Scripts/findPeaks.py")
@@ -136,14 +136,14 @@ source("~/Magneto2020/Scripts/Functions.R")
 
 
     gaussImage[0:100, ] <- mean(gaussImage)
-    gaussImage[(nrow(gaussImage)-125):nrow(gaussImage),] <- mean(gaussImage)
+    gaussImage[(nrow(gaussImage)-60):nrow(gaussImage),] <- mean(gaussImage)
     #gaussImage[(nrow(gaussImage) - 75):(nrow(gaussImage)),] <- mean(gaussImage)
     gaussImage[gaussImage < 0] <- 0
 
     col_sums <- colSums(gaussImage)
     rowSums <- rowSums(gaussImage)^2
     threshold <- (0.4*(mean(rowSums)))
-    fivePercent <- 0.015*max(rowSums)#(sum(gaussImage[(nrow(gaussImage) - 126),]) + 1)^2
+    fivePercent <- 0.05*max(rowSums)#(sum(gaussImage[(nrow(gaussImage) - 126),]) + 1)^2
     distance <- 50
     
     source_python("~/Magneto2020/Scripts/findPeaks.py")
@@ -152,6 +152,15 @@ source("~/Magneto2020/Scripts/Functions.R")
 
   }
   
+  #checking to see if the peak is near the bottom of the image
+  for (k in 1:length(peaks[[1]])) {
+    if (rowSums[peaks[[1]][k] + 10] == rowSums[length(rowSums)]){
+      
+      peaks[[1]] <- peaks[[1]][-k]
+      peaks[[2]]$peak_heights <- peaks[[2]]$peak_heights[-k]
+      
+    }
+  }
 
   
   highestFourPeaksIndex <- vector()
@@ -170,15 +179,17 @@ source("~/Magneto2020/Scripts/Functions.R")
  
   imageName
   probabilityB
+  pracemaPeaks <- findpeaks(rowSums, npeaks = 4, threshold = 0.05, sortstr = FALSE, minpeakheight = fivePercent)
   
   plot(rowSums, type = "l")
   points(x = highestFourPeaksIndex, y = fourPeaksHeight, pch = 20, col = "red")
+  points(x = pracemaPeaks[,2], y = pracemaPeaks[,1 ], pch = 11, col = 'blue')
  
 
 ```
 
 ```{r}
-i = i+1
+i = i + 1
 ```
 ```{r}
 bright = FALSE
