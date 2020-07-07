@@ -171,3 +171,38 @@ brightProb <- function(image){
   decision <- exp(beta0 + beta1 * standardizedLen)/(1 + exp(beta0 + beta1 * standardizedLen))
   return(decision)
 }
+
+#'checks to see if the last part of a file name is .tif or .tiff *It doesn't split any part of the name*
+#'@param imageName in the form AGC--H-19260314-19260316.tif
+#'@return bool of TRUE or FALSE
+isTiff <- function(imageName){
+  lastStringInSplit <- strsplit(imageName, "")
+  lenStrSp = length(lastStringInSplit[[1]])
+  fileType <- lastStringInSplit[[1]][as.integer(lenStrSp - 3):lenStrSp]
+  fileTypeOneString = paste0(fileType[1], fileType[2], fileType[3], fileType[4])
+  if (fileTypeOneString == ".tif" | fileTypeOneString == "tiff") {
+    return(TRUE)
+  }
+  else{
+    return(FALSE)
+  }
+}
+
+
+#'Reads tiff (also checks for if the image is a .tif or .tiff)
+#'@param image The image name
+#'@param file_location the path from ~/ to the dir where the file is
+image_import <- function(image,file_loc){
+  tiffCheck <- isTiff(image)
+
+  if(isTRUE(tiffCheck)){
+    return(readTIFF(paste0(file_loc,"/",image)))
+  }
+  else{
+    warning(paste0("file ", image, " is not a .tif or .tiff" ))
+  }
+
+}
+
+
+
