@@ -1,15 +1,15 @@
 ##DataFrom DigitizationTODO.py ---------------------------------------------------------
 PWD <- setwd("~/Magneto2020/")
 
-DigitizationTODO <- read.csv("~/Magneto2020/DataCSV/TODOBatch5.csv", header = FALSE)
+DigitizationTODO <- read.csv("~/Magneto2020/DataCSV/TestTable.csv", header = FALSE)
 names(DigitizationTODO) <- c("ImagePath", "ImageName", "DigitizedYet", "DigitizationPath", "DigitizationName", "ErrorWhenDigitized")
-Range = "AGC--H-19260902-19260904.tif"
+#Range = "AGC--H-19260902-19260904.tif"
 
 ##--------------------------------------------------------------------------------------
 
 ##MainScrips----------------------------------------------------------------------------
 source("~/Magneto2020/Scripts/AutomationScript.R")
-DigitizationUsingTIS(DigitizationTODO, PWD = PWD, keywordInName =  Range, bright = TRUE)
+DigitizationUsingTIS(DigitizationTODO, PWD = PWD, bright = TRUE, TODOcsvName = "TestTable.csv")
 
 #Image.Group <- "~/SpecificDataAskedFor/ACG-D-193109/"
 #source("~/Magneto2020/Scripts/TIS.R")

@@ -13,9 +13,7 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
   ## Functions ------------------------------------------------------------------
 
 
-  image_import <- function(image,file_loc){
-    readTIFF(paste0(file_loc,"/",image))
-    }
+
 
   classArrayEdit <- function(magnetogram){
     magnetogram <- magnetogram[,,1]
@@ -51,13 +49,18 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
 
   START_INDEX = 1
   END_INDEX = 0
+  browser()
 
 
 
   ## Script --------------------------------------------------------------------
 
 
-  image <- image_import(image = image_name,file_loc = file_location)
+  image <- tryCatch(image_import(image = image_name,file_loc = file_location), error = function(e) e)
+
+  if (inherits(image, "error")) {
+    return(image)
+    }
 
   print(paste0("The minimum value in image is: ", min(image)))
   print(paste0("The maximum value in image is: ", max(image)))
