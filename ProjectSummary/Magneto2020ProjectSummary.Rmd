@@ -1,0 +1,66 @@
+---
+title: "Magneto Summer2020 Summary"
+author: Benjamin Ott
+date: 
+output: pdf_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("knitr")
+```
+
+## DigitizationTODO.py 
+
+The need for a program that told us what images had been digitized by previous versions became apparent, as it wouldn't be possible to re-digitize all of the images when the program was stopped.  This was easiest to run in python because of its efficient computing capability.  It asks the user for two .txt files *Figure: D1*; These files contain the path of one item, in our case these were the paths of the origional image and the path of the digitized image.
+
+
+
+***
+
+**Original Image Path**
+
+/home/ben/magneto/Images/AGC-D-19010530-19040829/AGC-D-19031103-19031105.tif
+
+**Digitized Image Path**
+
+/home/ben/magneto/Digitized_Data/Algorithm2/AGC-D-19031103-19031105.tif.csv
+
+***
+
+The path was needed so that the digitize function would be able to find the image that hasn't been digitized yet (see TISForAutomation for more details about digitization function).  
+
+  The path was then split into the name, the path and the file type;  This program was designed to take any file type (.tiff, .tif, .tif.csv, .tif.png) as it separates by both "." and "/" to obtain
+
+***
+
+File Path: */home/ben/magneto/Images/AGC-D-19010530-19040829/*
+
+File Name: *AGC-D-19031103-19031105*
+
+File Type: *.tif*
+
+***
+
+This aloud us to ony compare the file names of images and digitized images, without needing to worry about the path or the file type.  This caused an decrease of the computation time as there wasn't any splitting done when the comparison was happening.  This caused another problem, as we were only comparing the names, in some cases there was digitized images that don't have original images;  code was created to identify when this happens and print it to screen for the user to see.  We recorded these in a document **DigitizedNonImages.txt** to hopefully identify the original images one day.
+
+
+
+as the comparisons happen in the function, They are recorded and outputed to a .csv file that gets saved locally. Example of the output *Figure: D2*.  In order of the columns, it saves:  **Image Path, Image Name, If the image has been digitized, Digitized Path, Digitized Name**.  Along with this .csv, there is also information that is printed to the user about the data *Figure: D3*;  This includes information to ensure that all of the files are accounted for in the final document, along with the number of digitized images and the number of images that still need to be digitized.
+
+
+```{r, out.width = '95%', echo = FALSE, fig.cap="D1: The user input"}
+knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/digTODOUserInput.png")
+```
+
+```{r, out.width = '95%', echo = FALSE, fig.cap="D2: .csv Output File Example"}
+knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/DigOutputcsv.png")
+```
+
+```{r, out.width = '95%', echo = FALSE, fig.cap="D3: Extra Information for User"}
+knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/DigUsrOutput.png")
+```
+
+
+

@@ -1,0 +1,9 @@
+This file is dedicated to digitized images that don't actually exist
+
+AGC-D-19010729-19010730.tif.csv
+AGC-D-19010908-19010910-BlackTraceOnly.tif.csv
+AGC-D-19011008-19011010.tif.csv
+AGC-D-19020402-19020404-allthecrazyredtrace.tif.csv
+AGC-D-19020418-19020420.tif.csv
+AGC-D-19020526-19020528-startTrace1.tif.csv
+AGC-D-19020923-19020925.tif.csv
