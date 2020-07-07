@@ -87,16 +87,18 @@ ImageTesting <- read.csv("~/Magneto2020/DataCSV/pngTODOTesting.csv", header = TR
 
 
 
-fileloc <- as.character(ImageTesting$ImagePath[i])
+file_loc <- as.character(ImageTesting$ImagePath[i])
 imageName <- as.character(ImageTesting$ImageName[i])
 library(reticulate)
 
-image <- image_import(imageName, fileloc)
+image <- image_import(imageName, file_loc)
 source("~/Magneto2020/Scripts/Functions.R")
-  probabilityB <- brightProb(image)
+  
   
   image <- verticalImageCheck(image)
-  
+  probabilityB <- brightProb(image)
+  bright = probabilityB
+
   if (bright == FALSE) {
 
     gaussImage <- abs(t( apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) ))
@@ -176,6 +178,44 @@ source("~/Magneto2020/Scripts/Functions.R")
     highestFourPeaksIndex <- peaks[[1]]
     fourPeaksHeight <- peaks[[2]]$peak_heights
   }
+  fourPeaks <- data.frame(highestFourPeaksIndex, fourPeaksHeight)
+  names(fourPeaks) <- c("PeakIndex", "PeakHeight")
+  
+  #also need to pass in the rowsums
+  peakStart <- vector()
+  peakEnd <- vector()
+  for (i in 1:length(fourPeaks$PeakIndex)) {
+    height <- fourPeaks$PeakHeight[i]
+    tempHeightLeft <- height
+    tempHeightRight <- height
+    
+    for (j in 1:100) {
+      leftSide <- fourPeaks$PeakIndex[i] - j
+      rightSide <- fourPeaks$PeakIndex[i] + j
+      if (rowSums[leftSide] <= tempHeightLeft & rowSums[rightSide] <= tempHeightRight) {
+        tempHeightLeft <- rowSums[leftSide]
+        tempHeightRight <- rowSums[rightSide]
+      }
+      #else if(rowSums[leftSide + 1] <= tempHeightLeft & rowSums[rightSide] <= tempHeightRight) {
+       # tempHeightLeft <- rowSums[leftSide + 1]
+      #  tempHeightRight <- rowSums[rightSide]
+      #}
+      else if(rowSums[leftSide + 1] <= tempHeightLeft & rowSums[rightSide + 1] <= tempHeightRight) {
+        tempHeightLeft <- rowSums[leftSide + 1]
+        tempHeightRight <- rowSums[rightSide + 1]
+      }
+      else{
+        peakStart[i] <- leftSide
+        peakEnd[i] <- rightSide
+        break
+      }
+      
+    }
+    
+    
+  }
+
+
  
   imageName
   probabilityB
@@ -184,7 +224,8 @@ source("~/Magneto2020/Scripts/Functions.R")
   plot(rowSums, type = "l")
   points(x = highestFourPeaksIndex, y = fourPeaksHeight, pch = 20, col = "red")
   points(x = pracemaPeaks[,2], y = pracemaPeaks[,1 ], pch = 11, col = 'blue')
- 
+  abline(v = c(peakStart, peakEnd), col = 'green', lty = 2)
+  abline(v = c(pracemaPeaks[,3], pracemaPeaks[,4]), lty = 2, col = "red")
 
 ```
 
