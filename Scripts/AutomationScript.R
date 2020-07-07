@@ -9,7 +9,7 @@
 #'
 
 DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL, keywordInName = '', TODOcsvName,
-                                 withplots = TRUE, optimization = TRUE, saveresults = TRUE, bright = FALSE){
+                                 withplots = TRUE, optimization = TRUE, saveresults = TRUE){
   library("tiff")
   library("pracma")
   library("data.table")
@@ -83,14 +83,14 @@ DigitizationUsingTIS <- function(ImageDigitizationDFnx6 = NULL, PWD = NULL, keyw
       firstPartOfName <- imageChecking(oneImageName)
       #tiffBool <- isTiff(oneImageName)
 
-      if (notEmpty) {8
+      if (notEmpty) {
         if (is.na(ErrorMessage)) { # if there is an error message about the data (like there isn't any data)
           if (firstPartOfName == "AGC" || firstPartOfName == "TOR") {
             browser()
             #if (tiffBool) { # means that it is a .tiff file
               source("~/Magneto2020/Scripts/TISForAutomation.R")
               ret <- TISForAutomation(oneImagePath, image_name = oneImageName , withplots = withplots,
-                           optimization = optimization, saveresults = saveresults, bright = bright)
+                           optimization = optimization, saveresults = saveresults)
             #}
             #else{
               if(inherits(ret, "error")) {

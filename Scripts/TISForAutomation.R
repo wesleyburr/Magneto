@@ -1,6 +1,6 @@
 
 TISForAutomation <- function(file_location = 0, image_name = FALSE,
-                numTraces = 2, withplots = TRUE, optimization = TRUE, saveresults = TRUE, bright = FALSE) {
+                numTraces = 2, withplots = TRUE, optimization = TRUE, saveresults = TRUE) {
 
   library("tiff")
   library("pracma")
@@ -62,10 +62,6 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
     return(image)
     }
 
-  print(paste0("The minimum value in image is: ", min(image)))
-  print(paste0("The maximum value in image is: ", max(image)))
-
-
   if (class(image) == "array") {
 
     image <- classArrayEdit(image)
@@ -77,13 +73,12 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
    #image <- brightImages(image)
   #}
 
-
-
   image <- verticalImageCheck(image)
+
 ## lets us check if the image has the correct contrast
   writeTIFF(image,"testing1_auto.tif")
 
-
+  probabilityB <- brightProb(image)
 
 
 
@@ -98,48 +93,61 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
   if (bright == FALSE) {
 
     gaussImage <- abs(t( apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) ))
-    writeTIFF(gaussImage,"testing2_auto.tif")
+    #writeTIFF(gaussImage,"testing2_auto.tif")
 
     image[image = NULL] <- 0
     image[image < (1 - mean(image,na.rm = TRUE))] <- 0
     image[image > 0] <- 1
-    writeTIFF(image,"testing3.tif")
+    #writeTIFF(image,"testing3.tif")
 
-    #this looks to be for images before 1900
-    #gaussImage[0:100,] <- mean(gaussImage)
-    #gaussImage[(nrow(gaussImage) - 60):(nrow(gaussImage)),] <- mean(gaussImage)
-    #gaussImage[gaussImage < 0] <- 0
+
+    gaussImage[0:100,] <- mean(gaussImage)
+    gaussImage[(nrow(gaussImage) - 60):(nrow(gaussImage)),] <- mean(gaussImage)
+    gaussImage[gaussImage < 0] <- 0
 
     col_sums <- colSums(gaussImage)
-    rowSums <- rowSums(gaussImage)
+    rowSums <- rowSums(gaussImage)^2
     threshold <- (0.8*mean(rowSums))
+    fivePercent <- 0.05*max(rowSums) #(sum(gaussImage[(nrow(gaussImage) - 130),]) + 1)^2
+    distance <- 100
 
-
+    source_python("~/Magneto2020/Scripts/findPeaks.py")
+    peaks <- FindingPeaks(rowSums, fivePercent, distance)
+    peaks[[1]] <- peaks[[1]] + 1
   }
   else {# this is bright = TRUE
-    browser()
+
 
     image[image = NULL] <- 0
     image[image < (quantile(image,0.95))] <- 0
     image[image > 0] <- 1
     gaussImage <-  t(apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ))
-    writeTIFF(gaussImage,"testing2_auto.tif")
+    #writeTIFF(gaussImage,"testing2_auto.tif")
 
     print("")
     print("===== Identify Peaks With Brightness =====")
 
 
     gaussImage[0:100, ] <- mean(gaussImage)
-    #gaussImage[(nrow(gaussImage)-100):nrow(gaussImage),] <- mean(gaussImage)
-    gaussImage[(nrow(gaussImage) - 60):(nrow(gaussImage)),] <- mean(gaussImage)
+    gaussImage[(nrow(gaussImage)-60):nrow(gaussImage),] <- mean(gaussImage)
     gaussImage[gaussImage < 0] <- 0
 
     col_sums <- colSums(gaussImage)
     rowSums <- rowSums(gaussImage)^2
     threshold <- (0.4*(mean(rowSums)))
     fivePercent <- 0.05*max(rowSums)
+    distance <- 50
+
+    source_python("~/Magneto2020/Scripts/findPeaks.py")
+    peaks <- FindingPeaks(rowSums, fivePercent, distance)
+    peaks[[1]] <- peaks[[1]] + 1 #changed to correct indexes for R instead of python
 
   }
+
+
+  #checking to see if the peak is near the bottom/top of the image becuase this can cause flairs
+  Edge_Peaks_Check(peaks, rowSums)
+  finalPeaks <- Four_Peaks(peaks)
 
 browser()
 Peaks <- findpeaks(rowSums, npeaks = 4, threshold = threshold , sortstr = FALSE, minpeakheight = fivePercent)
@@ -147,8 +155,9 @@ Peaks <- findpeaks(rowSums, npeaks = 4, threshold = threshold , sortstr = FALSE,
 print("Identify Peaks is done!")
 
 plot(rowSums, type = "l", col = "navy")
-points(x = Peaks[,2], y = Peaks[,1], pch = 20, col = "red")
-abline(v = c(Peaks[,3], Peaks[,4]), lty = 2, col = "green")
+points(x = finalPeaks$PeakIndex, y = finalPeaks$PeakHeight, pch = 20, col = "red")
+points(x = Peaks[,2], y = Peaks[,1], pch = 11, col = "blue")
+#abline(v = c(Peaks[,3], Peaks[,4]), lty = 2, col = "green")
 browser()
 length(Peaks)
 
