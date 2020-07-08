@@ -47,7 +47,7 @@ This aloud us to only compare the file names of images and digitized images, wit
 
 
 
-as the comparisons happen in the function, They are recorded and outputed to a .csv file that gets saved locally. Example of the output *Figure: DigTODO2*.  In order of the columns, it saves:  **Image Path, Image Name, If the image has been digitized, Digitized Path, Digitized Name**.  Along with this .csv, there is also information that is printed to the user about the data *Figure: DigTODO3*;  This includes information to ensure that all of the files are accounted for in the final document, along with the number of digitized images and the number of images that still need to be digitized.
+As the comparisons happen in the function, They are recorded and outputed to a .csv file that gets saved locally. Example of the output *Figure: DigTODO2*.  In order of the columns, it saves:  **Image Path, Image Name, If the image has been digitized, Digitized Path, Digitized Name**.  Along with this .csv, there is also information that is printed to the user about the data *Figure: DigTODO3*;  This includes information to ensure that all of the files are accounted for in the final document, along with the number of digitized images and the number of images that still need to be digitized.
 
 
 ```{r, out.width = '95%', echo = FALSE, fig.cap="DigTODO1: The user input"}
@@ -87,3 +87,28 @@ Even with the symlinks working, there was still a problem with the chance of a d
 knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/permissionDeniedErrorGetimages.png")
 ```
 
+## Finding Image Gaps
+
+The long term goal for the magneto project is to obtain a continuous time series of all the data, in order to ensure that we had all of the images for each day a python program was written. 
+
+The first thing that needed to happen was to split the names from our file system.  Using part of the algorithm created for the DigitizationTODO function, we were able to split the names into key parts; For example, AGC-D-19031103-19031105.tif, was split into these key parts:
+
+***
+
+The Observatory: *AGC*
+
+The Axis of the plot: *D*
+
+Start Date: *19031103*
+
+End Date: *19031105*
+
+***
+
+Using the imported datetime package, the Start Date and End Date were successfully changed into a datetime object which we used later to produce the gaps.  Any dates that weren't able to be converted were then sent to the user at the end of the script.  An example of this was an image that was dated 18650228-18650229; The program successfully returned an error, and was verified with a calendar from 1865 that there us no date February 29th in that year.
+
+Arranging the successful conversions into an array consisting of columns for each of the cases,  AGC-D, AGC-H, AGC-V, AGC-D V and H, TOR-D, TOR-H, TOR-V, and TOR-D V and H; Storing a tuple of (Start Date, End Date).  It was then possible to rearrange the items in the column by their start date. 
+
+A problem arose here, as we needed to keep the start and end date of the directory the original image came from.  This was not easy as some of the directories contained more then one Axis from a specific day, therefore this directory start and end date had to be added to any columns that were appended by the images in that directory. 
+
+Now starting at the first element in a row, each End Date was compared to the next Start Date.  The advantage of using the datetime import is, subtracting two datetime objects gives the difference in days between them, which is the gap of the images we don't currently have.  This data is being sent to NRCAN to obtain these missing images so we can start the work on making the continuous time series in the future.
