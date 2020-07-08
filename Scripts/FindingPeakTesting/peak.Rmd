@@ -181,32 +181,35 @@ source("~/Magneto2020/Scripts/Functions.R")
   fourPeaks <- data.frame(highestFourPeaksIndex, fourPeaksHeight)
   names(fourPeaks) <- c("PeakIndex", "PeakHeight")
   
+  #TODO need to look into puting this straight into the find peaks function! instead of making it its own
+  GetPeakStartAndEnd <- function(rowSums, FourPeaksDF)
   #also need to pass in the rowsums
   peakStart <- vector()
   peakEnd <- vector()
-  for (i in 1:length(fourPeaks$PeakIndex)) {
-    height <- fourPeaks$PeakHeight[i]
+  
+  for (k in 1:length(fourPeaks$PeakIndex)) {
+    height <- fourPeaks$PeakHeight[k]
     tempHeightLeft <- height
     tempHeightRight <- height
     
     for (j in 1:100) {
-      leftSide <- fourPeaks$PeakIndex[i] - j
-      rightSide <- fourPeaks$PeakIndex[i] + j
+      leftSide <- fourPeaks$PeakIndex[k] - j
+      rightSide <- fourPeaks$PeakIndex[k] + j
       if (rowSums[leftSide] <= tempHeightLeft & rowSums[rightSide] <= tempHeightRight) {
         tempHeightLeft <- rowSums[leftSide]
         tempHeightRight <- rowSums[rightSide]
       }
-      #else if(rowSums[leftSide + 1] <= tempHeightLeft & rowSums[rightSide] <= tempHeightRight) {
-       # tempHeightLeft <- rowSums[leftSide + 1]
-      #  tempHeightRight <- rowSums[rightSide]
-      #}
-      else if(rowSums[leftSide + 1] <= tempHeightLeft & rowSums[rightSide + 1] <= tempHeightRight) {
+      else if (rowSums[leftSide + 1] <= tempHeightLeft & rowSums[rightSide] <= tempHeightRight) {
         tempHeightLeft <- rowSums[leftSide + 1]
+        tempHeightRight <- rowSums[rightSide]
+      }
+      else if(rowSums[leftSide] <= tempHeightLeft & rowSums[rightSide + 1] <= tempHeightRight) {
+        tempHeightLeft <- rowSums[leftSide]
         tempHeightRight <- rowSums[rightSide + 1]
       }
       else{
-        peakStart[i] <- leftSide
-        peakEnd[i] <- rightSide
+        peakStart[k] <- leftSide
+        peakEnd[k] <- rightSide
         break
       }
       
@@ -218,14 +221,15 @@ source("~/Magneto2020/Scripts/Functions.R")
 
  
   imageName
+
   probabilityB
   pracemaPeaks <- findpeaks(rowSums, npeaks = 4, threshold = 0.05, sortstr = FALSE, minpeakheight = fivePercent)
   
   plot(rowSums, type = "l")
-  points(x = highestFourPeaksIndex, y = fourPeaksHeight, pch = 20, col = "red")
+  points(x = highestFourPeaksIndex, y = fourPeaksHeight, pch = 20, col = 'red')
   points(x = pracemaPeaks[,2], y = pracemaPeaks[,1 ], pch = 11, col = 'blue')
-  abline(v = c(peakStart, peakEnd), col = 'green', lty = 2)
-  abline(v = c(pracemaPeaks[,3], pracemaPeaks[,4]), lty = 2, col = "red")
+  abline(v = c(peakStart, peakEnd), col = 'black', lty = 2)
+  abline(v = c(pracemaPeaks[,3], pracemaPeaks[,4]), lty = 2, col = "green")
 
 ```
 
