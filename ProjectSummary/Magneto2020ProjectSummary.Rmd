@@ -13,7 +13,7 @@ library("knitr")
 
 ## DigitizationTODO.py 
 
-The need for a program that told us what images had been digitized by previous versions became apparent, as it wouldn't be possible to re-digitize all of the images when the program was stopped.  This was easiest to run in python because of its efficient computing capability.  It asks the user for two .txt files *Figure: D1*; These files contain the path of one item, in our case these were the paths of the origional image and the path of the digitized image.
+The need for a program that told us what images had been digitized by previous versions became apparent, as it wouldn't be possible to re-digitize all of the images when the program was stopped.  This was easiest to run in python because of its efficient computing capability.  It asks the user for two .txt files *Figure: DigTODO1*; These files contain the path of one item, in our case these were the paths of the origional image and the path of the digitized image.
 
 
 
@@ -43,24 +43,47 @@ File Type: *.tif*
 
 ***
 
-This aloud us to ony compare the file names of images and digitized images, without needing to worry about the path or the file type.  This caused an decrease of the computation time as there wasn't any splitting done when the comparison was happening.  This caused another problem, as we were only comparing the names, in some cases there was digitized images that don't have original images;  code was created to identify when this happens and print it to screen for the user to see.  We recorded these in a document **DigitizedNonImages.txt** to hopefully identify the original images one day.
+This aloud us to only compare the file names of images and digitized images, without needing to worry about the path or the file type.  This caused an decrease of the computation time as there wasn't any splitting done when the comparison was happening.  This caused another problem, as we were only comparing the names, in some cases there was digitized images that don't have original images;  code was created to identify when this happens and print it to screen for the user to see.  We recorded these in a document **DigitizedNonImages.txt** to hopefully identify the original images one day.
 
 
 
-as the comparisons happen in the function, They are recorded and outputed to a .csv file that gets saved locally. Example of the output *Figure: D2*.  In order of the columns, it saves:  **Image Path, Image Name, If the image has been digitized, Digitized Path, Digitized Name**.  Along with this .csv, there is also information that is printed to the user about the data *Figure: D3*;  This includes information to ensure that all of the files are accounted for in the final document, along with the number of digitized images and the number of images that still need to be digitized.
+as the comparisons happen in the function, They are recorded and outputed to a .csv file that gets saved locally. Example of the output *Figure: DigTODO2*.  In order of the columns, it saves:  **Image Path, Image Name, If the image has been digitized, Digitized Path, Digitized Name**.  Along with this .csv, there is also information that is printed to the user about the data *Figure: DigTODO3*;  This includes information to ensure that all of the files are accounted for in the final document, along with the number of digitized images and the number of images that still need to be digitized.
 
 
-```{r, out.width = '95%', echo = FALSE, fig.cap="D1: The user input"}
+```{r, out.width = '95%', echo = FALSE, fig.cap="DigTODO1: The user input"}
 knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/digTODOUserInput.png")
 ```
 
-```{r, out.width = '95%', echo = FALSE, fig.cap="D2: .csv Output File Example"}
+```{r, out.width = '95%', echo = FALSE, fig.cap="DigTODO2: .csv Output File Example"}
 knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/DigOutputcsv.png")
 ```
 
-```{r, out.width = '95%', echo = FALSE, fig.cap="D3: Extra Information for User"}
+```{r, out.width = '95%', echo = FALSE, fig.cap="DigTODO3: Extra Information for User"}
 knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/DigUsrOutput.png")
 ```
 
 
+
+
+## Finding Specific Days
+
+To aid with the automation of TIS, a function was created to find all of the files we have that contain the specified **keyword**, which could be a day, a year, or any specific keyword that one would want to search for.  This function is aptly named getImagesForDate which uses the fs package. Part of the fs package is the ability to use commands like grep from bash to search.  It can be narrowed to a specific directory, or it can search recursively throughout all of the files from your home directory.
+
+One problem that was created when making this function was the handling of un-foreseeable errors two, are great examples of this.
+
+### Using Grep with Symlinks
+
+Symbolic links, or Symlinks, are pointers to another directory on another system for example.  This became prevalent when using the magneto directory on the Trent server; I had access to it, but because it is a Symlink, to search that directory we had to first find all of the pointers/Symlinks then look recursively into all of those specific directory's separately.
+
+### Exeption handeling
+
+Even with the symlinks working, there was still a problem with the chance of a directory being un-accessable by that specific user.  This problem came when looking through the symlink directory for magneto *Figure: FindingDays1*.  As this directory was a hidden directory that no one has access to, the handling had to be completed in such a way that the program would still complete, and just print a warning to the screen notifying the user that there was such a directory in the search radius.
+
+
+
+
+
+```{r, out.width = '95%', echo = FALSE, fig.cap="FingingDays1: Permission Denied"}
+knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/permissionDeniedErrorGetimages.png")
+```
 
