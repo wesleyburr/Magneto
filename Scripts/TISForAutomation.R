@@ -1,7 +1,7 @@
 
 TISForAutomation <- function(file_location = 0, image_name = FALSE,
                 numTraces = 2, withplots = TRUE, optimization = TRUE, saveresults = TRUE) {
-
+#withplots alows the user to look at the three lines, the lower, upper and middle bounds
   library("tiff")
   library("pracma")
   library("multitaper")

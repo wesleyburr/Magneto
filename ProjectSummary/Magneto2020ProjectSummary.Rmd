@@ -80,7 +80,7 @@ Symbolic links, or Symlinks, are pointers to another directory on another system
 Even with the symlinks working, there was still a problem with the chance of a directory being un-accessable by that specific user.  This problem came when looking through the symlink directory for magneto *Figure: FindingDays1*.  As this directory was a hidden directory that no one has access to, the handling had to be completed in such a way that the program would still complete, and just print a warning to the screen notifying the user that there was such a directory in the search radius.
 
 
-
+This keyword searcher was implemented into the **AutomationScript**; It allows users to digitize only specific images or specific ranges of images based off of the **DigitizationTODO** csv.  The user only needs to know the keyword and the function will find anything in the specified or non specified searching radius.
 
 
 ```{r, out.width = '95%', echo = FALSE, fig.cap="FingingDays1: Permission Denied"}
