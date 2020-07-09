@@ -5,6 +5,7 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
   library("tiff")
   library("pracma")
   library("multitaper")
+  library("reticulate")
 
   source("~/Magneto2020/Scripts/BreakoutOptimization.R")
   source("~/Magneto2020/Scripts/CustomFunctions.R")

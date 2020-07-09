@@ -254,3 +254,65 @@ Four_Peaks <- function(findingPeaksVector){
   names(fourPeaks) <-  c("PeakIndex", "PeakHeight")
   return(fourPeaks)
 }
+
+# TODO put a dimension check on this function
+finding_Peak_Start_Ends <- function(fourPeaks){
+  peakStart <- vector()
+  peakEnd <- vector()
+  for (k in 1:length(fourPeaks$PeakIndex)) {
+    height <- fourPeaks$PeakHeight[k]
+    tempHeightLeft <- height
+    tempHeightRight <- height
+
+    for (j in 1:100) {
+      leftSide <- fourPeaks$PeakIndex[k] - j
+      rightSide <- fourPeaks$PeakIndex[k] + j
+      if (rowSums[leftSide] <= tempHeightLeft &
+          rowSums[rightSide] <= tempHeightRight) {
+
+        tempHeightLeft <- rowSums[leftSide]
+        tempHeightRight <- rowSums[rightSide]
+      }
+      else if (rowSums[leftSide + 1] <= tempHeightLeft &
+               rowSums[rightSide] <= tempHeightRight) {
+
+        tempHeightLeft <- rowSums[leftSide + 1]
+        tempHeightRight <- rowSums[rightSide]
+      }
+      else if(rowSums[leftSide] <= tempHeightLeft &
+              rowSums[rightSide + 1] <= tempHeightRight) {
+
+        tempHeightLeft <- rowSums[leftSide]
+        tempHeightRight <- rowSums[rightSide + 1]
+      }
+      else{
+        peakStart[k] <- leftSide
+        peakEnd[k] <- rightSide
+        break
+      }
+
+    }
+
+
+  }
+  ret <- data.frame(fourPeaks, peakStart, peakEnd)
+  return(ret)
+}
+
+find_peaks <- function(rowSums, minDistance){
+  library("reticulate")
+
+  fivePercent <- 0.05*max(rowSums)
+  source_python("~/Magneto2020/Scripts/findPeaks.py")
+  peaks <- FindingPeaks(rowSums, fivePercent, distance)
+  peaks[[1]] <- peaks[[1]] + 1 # python index correction
+
+
+  source("~/Magneto2020/Scripts/Functions.R")
+  Edge_Peaks_Check(peaks, rowSums)
+  fourPeaks <- Four_Peaks(peaks)
+
+  ret <- finding_Peak_Start_Ends(fourPeaks)
+  return(ret)
+
+}
