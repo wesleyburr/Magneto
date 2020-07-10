@@ -87,8 +87,6 @@ image_import <- function(image,file_loc){
 ImageTesting <- read.csv("~/Magneto2020/DataCSV/pngTODOTesting.csv", header = TRUE, stringsAsFactors = FALSE)
 
 
-
-
 file_loc <- as.character(ImageTesting$ImagePath[i])
 imageName <- as.character(ImageTesting$ImageName[i])
 

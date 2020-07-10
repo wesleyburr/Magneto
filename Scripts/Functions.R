@@ -314,7 +314,7 @@ finding_Peak_Start_Ends <- function(peaks){
 find_peaks <- function(rowSums, minDistance, maxPeakNumber){
 
   library("reticulate")
-
+  browser()
   fivePercent <- 0.05*max(rowSums)
   source_python("~/Magneto2020/Scripts/findPeaks.py")
   peaks <- FindingPeaks(rowSums, fivePercent, minDistance)

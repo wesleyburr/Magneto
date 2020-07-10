@@ -112,9 +112,9 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
     fivePercent <- 0.05*max(rowSums) #(sum(gaussImage[(nrow(gaussImage) - 130),]) + 1)^2
     distance <- 100
 
-    source_python("~/Magneto2020/Scripts/findPeaks.py")
-    peaks <- FindingPeaks(rowSums, fivePercent, distance)
-    peaks[[1]] <- peaks[[1]] + 1
+    source("~/Magneto2020/Scripts/Functions.R")
+    peaks <- find_peaks(rowSums, minDistance =  distance, maxPeakNumber = 4)
+
   }
   else {# this is bright = TRUE
 
@@ -139,37 +139,34 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
     fivePercent <- 0.05*max(rowSums)
     distance <- 50
 
-    source_python("~/Magneto2020/Scripts/findPeaks.py")
-    peaks <- FindingPeaks(rowSums, fivePercent, distance)
-    peaks[[1]] <- peaks[[1]] + 1 #changed to correct indexes for R instead of python
+    source("~/Magneto2020/Scripts/Functions.R")
+    peaks <- find_peaks(rowSums, minDistance =  distance, maxPeakNumber = 4)
+
 
   }
 
-
-  #checking to see if the peak is near the bottom/top of the image becuase this can cause flairs
-  Edge_Peaks_Check(peaks, rowSums)
-  finalPeaks <- Four_Peaks(peaks)
-
 browser()
-Peaks <- findpeaks(rowSums, npeaks = 4, threshold = threshold , sortstr = FALSE, minpeakheight = fivePercent)
+pracemaPeaks <- findpeaks(rowSums, npeaks = 4, threshold = threshold , sortstr = FALSE, minpeakheight = fivePercent)
 
 print("Identify Peaks is done!")
 
-plot(rowSums, type = "l", col = "navy")
-points(x = finalPeaks$PeakIndex, y = finalPeaks$PeakHeight, pch = 20, col = "red")
-points(x = Peaks[,2], y = Peaks[,1], pch = 11, col = "blue")
+#plot(rowSums, type = "l", col = "navy")
+#points(x = finalPeaks$PeakIndex, y = finalPeaks$PeakHeight, pch = 20, col = "red")
+#points(x = Peaks[,2], y = Peaks[,1], pch = 11, col = "blue")
 #abline(v = c(Peaks[,3], Peaks[,4]), lty = 2, col = "green")
-browser()
-length(Peaks)
+#browser()
+#length(Peaks)
 
 #TODO there is still problems with this
 #Error in if (rowSums[Pracmapeaks[1, 2] - (Pracmapeaks[3, 2] - Pracmapeaks[2,  :
 #argument is of length zero
-PossiblePeaks <- findingPossiblePeaks(Peaks,rowSums = rowSums)
+#PossiblePeaks <- findingPossiblePeaks(Peaks,rowSums = rowSums)
 
-plot(rowSums, type = "l", col = "navy")
-points(x = Peaks[,2], y = Peaks[,1], pch = 20, col = "red")
-abline(v = c(PossiblePeaks[1,], PossiblePeaks[2,]), lty = 2, col = "green")
+plot(rowSums, type = "l")
+points(x = peaks$peakIndex, y = peaks$peakHeight, pch = 20, col = 'red')
+points(x = pracemaPeaks[,2], y = pracemaPeaks[,1 ], pch = 11, col = 'blue')
+abline(v = c(peaks$peakStart, peaks$peakEnd), col = 'black', lty = 2)
+abline(v = c(pracemaPeaks[,3], pracemaPeaks[,4]), lty = 2, col = "green")
 
 #Calculate area between main peaks
 
