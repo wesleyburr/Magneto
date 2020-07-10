@@ -80,6 +80,7 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
   writeTIFF(image,"testing1_auto.tif")
 
   probabilityB <- brightProb(image)
+  bright = probabilityB
 
 
 

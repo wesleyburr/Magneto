@@ -267,7 +267,7 @@ best_Peaks <- function(findingPeaksVector, maxPeaks){
 }
 
 # TODO put a dimension check on this function
-finding_Peak_Start_Ends <- function(peaks){
+finding_Peak_Start_Ends <- function(peaks, rowSums){
 
   peakStart <- vector()
   peakEnd <- vector()
@@ -325,7 +325,7 @@ find_peaks <- function(rowSums, minDistance, maxPeakNumber){
   peaksNoEdge <- Edge_Peaks_Check(peaks, rowSums)
   fourPeaks <- best_Peaks(peaksNoEdge, maxPeaks = maxPeakNumber)
 
-  ret <- finding_Peak_Start_Ends(fourPeaks)
+  ret <- finding_Peak_Start_Ends(fourPeaks, rowSums)
   names(ret) <- c("peakIndex", "peakHeight", "peakStarts", "peakEnds")
   return(ret)
 
