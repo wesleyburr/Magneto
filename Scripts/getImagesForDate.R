@@ -32,5 +32,5 @@ findPathsForkeyword <- function(path = "~/", keyword = NULL){
 }
 
 
-test <- findPathsForkeyword(keyword = "AGC-D-18650228-18650229.tif")
+test <- findPathsForkeyword(keyword = "AGC--H-19260103-19260105.tif")
 print(test)

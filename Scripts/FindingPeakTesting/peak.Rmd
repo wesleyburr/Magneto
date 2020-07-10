@@ -76,7 +76,9 @@ peaks <- FindingPeaks(rowSums, fivePercent)
 ```
 
 ```{r}
-library("rtiff")
+source("~/Magneto2020/Scripts/BreakoutOptimization.R")
+#library("rtiff")
+library("tiff")
 image_import <- function(image,file_loc){
     readTIFF(paste0(file_loc,"/",image))
 }
@@ -89,7 +91,7 @@ ImageTesting <- read.csv("~/Magneto2020/DataCSV/pngTODOTesting.csv", header = TR
 
 file_loc <- as.character(ImageTesting$ImagePath[i])
 imageName <- as.character(ImageTesting$ImageName[i])
-library(reticulate)
+
 
 image <- image_import(imageName, file_loc)
 source("~/Magneto2020/Scripts/Functions.R")
@@ -101,7 +103,8 @@ source("~/Magneto2020/Scripts/Functions.R")
 
   if (bright == FALSE) {
 
-    gaussImage <- abs(t( apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) ))
+    
+  gaussImage <- abs(t( apply(image, MARGIN = 1, FUN = deconvGauss, sig = 10, kern.trunc = 0.05, nw = 3 ) ))
     #writeTIFF(gaussImage,"testing2_auto.tif")
 
     image[image = NULL] <- 0
@@ -120,9 +123,7 @@ source("~/Magneto2020/Scripts/Functions.R")
     fivePercent <- 0.05*max(rowSums) #(sum(gaussImage[(nrow(gaussImage) - 130),]) + 1)^2
     distance <- 100
     
-    source_python("~/Magneto2020/Scripts/findPeaks.py")
-    peaks <- FindingPeaks(rowSums, fivePercent, distance)
-    peaks[[1]] <- peaks[[1]] + 1
+    fourPeaks <- find_peaks(rowSums = rowSums, minDistance =  distance, maxPeakNumber = 4)
   }
   if(bright == TRUE) {# this is bright = TRUE
     
@@ -148,6 +149,7 @@ source("~/Magneto2020/Scripts/Functions.R")
     fivePercent <- 0.05*max(rowSums)#(sum(gaussImage[(nrow(gaussImage) - 126),]) + 1)^2
     distance <- 50
     
+    fourPeaks <- find_peaks(rowSums, distance, 4)
     
 
   }
@@ -165,10 +167,11 @@ source("~/Magneto2020/Scripts/Functions.R")
   pracemaPeaks <- findpeaks(rowSums, npeaks = 4, threshold = 0.05, sortstr = FALSE, minpeakheight = fivePercent)
   
   plot(rowSums, type = "l")
-  points(x = highestFourPeaksIndex, y = fourPeaksHeight, pch = 20, col = 'red')
+  points(x = fourPeaks$peakIndex, y = fourPeaks$peakHeight, pch = 20, col = 'red')
   points(x = pracemaPeaks[,2], y = pracemaPeaks[,1 ], pch = 11, col = 'blue')
-  abline(v = c(peakStart, peakEnd), col = 'black', lty = 2)
+  abline(v = c(fourPeaks$peakStart, fourPeaks$peakEnd), col = 'black', lty = 2)
   abline(v = c(pracemaPeaks[,3], pracemaPeaks[,4]), lty = 2, col = "green")
+  
 
 ```
 

@@ -214,59 +214,71 @@ image_import <- function(image,file_loc){
 
 #'Checks the list of peaks for any flairs in the photos at start and end, they are removed
 #'@param FindingPeaksVector the resulting vector from FindingPeaks
-#'@param rowSums of the dataframe
+#'@param rowSums of the data frame
 #'@return void
 Edge_Peaks_Check <- function(FindingPeaksVector, rowSums){
+
   for (k in 1:length(FindingPeaksVector[[1]])) {
-    if (rowSums[FindingPeaksVector[[1]][k] + 10] == rowSums[length(rowSums)]) {
+    if (is.na(rowSums[FindingPeaksVector[[1]][k] + 20])){
+      FindingPeaksVector[[1]] <- FindingPeaksVector[[1]][-k]
+      FindingPeaksVector[[2]]$peak_heights <- FindingPeaksVector[[2]]$peak_heights[-k]
+    }
+    else if (is.na(rowSums[FindingPeaksVector[[1]][k] - 20])){
+      FindingPeaksVector[[1]] <- FindingPeaksVector[[1]][-k]
+      FindingPeaksVector[[2]]$peak_heights <- FindingPeaksVector[[2]]$peak_heights[-k]
+    }
+
+    else if (rowSums[FindingPeaksVector[[1]][k] + 20] == rowSums[length(rowSums)]) {
 
       FindingPeaksVector[[1]] <- FindingPeaksVector[[1]][-k]
       FindingPeaksVector[[2]]$peak_heights <- FindingPeaksVector[[2]]$peak_heights[-k]
 
     }
-    if (rowSums[FindingPeaksVector[[1]][k] - 10] == rowSums[1]) {
+    else if (rowSums[FindingPeaksVector[[1]][k] - 20] == rowSums[1]) {
 
       FindingPeaksVector[[1]] <- FindingPeaksVector[[1]][-k]
       FindingPeaksVector[[2]]$peak_heights <- FindingPeaksVector[[2]]$peak_heights[-k]
 
     }
   }
+  return(FindingPeaksVector)
 }
 
 
 
-Four_Peaks <- function(findingPeaksVector){
+best_Peaks <- function(findingPeaksVector, maxPeaks){
 
-  highestFourPeaksIndex <- vector()
-  fourPeaksHeight <- vector()
-  if (length(findingPeaksVector[[1]]) > 4) {
+  highestPeaksIndex <- vector()
+  bestPeaksHeight <- vector()
+  if (length(findingPeaksVector[[1]]) > maxPeaks) {
     sorting <- sort(findingPeaksVector[[2]]$peak_heights, decreasing = TRUE, index.return = TRUE)
-    for (j in 1:4) {
-      highestFourPeaksIndex <- c(highestFourPeaksIndex, findingPeaksVector[[1]][sorting$ix[j]])
-      fourPeaksHeight <- c(fourPeaksHeight, findingPeaksVector[[2]]$peak_heights[sorting$ix[j]])
+    for (j in 1:maxPeaks) {
+      highestPeaksIndex <- c(highestPeaksIndex, findingPeaksVector[[1]][sorting$ix[j]])#ix is a product from sort
+      bestPeaksHeight <- c(bestPeaksHeight, findingPeaksVector[[2]]$peak_heights[sorting$ix[j]])
     }
   }
-  if (length(findingPeaksVector[[1]]) <= 4) {
-    highestFourPeaksIndex <- findingPeaksVector[[1]]
-    fourPeaksHeight <- findingPeaksVector[[2]]$peak_heights
+  if (length(findingPeaksVector[[1]]) <= maxPeaks) {
+    highestPeaksIndex <- findingPeaksVector[[1]]
+    bestPeaksHeight <- findingPeaksVector[[2]]$peak_heights
   }
-  fourPeaks <- data.frame(highestFourPeaksIndex, fourPeaksHeight)
-  names(fourPeaks) <-  c("PeakIndex", "PeakHeight")
-  return(fourPeaks)
+  bestPeaks <- data.frame(highestPeaksIndex, bestPeaksHeight)
+  names(bestPeaks) <-  c("PeakIndex", "PeakHeight")
+  return(bestPeaks)
 }
 
 # TODO put a dimension check on this function
-finding_Peak_Start_Ends <- function(fourPeaks){
+finding_Peak_Start_Ends <- function(peaks){
+
   peakStart <- vector()
   peakEnd <- vector()
-  for (k in 1:length(fourPeaks$PeakIndex)) {
-    height <- fourPeaks$PeakHeight[k]
+  for (k in 1:length(peaks$PeakIndex)) {
+    height <- peaks$PeakHeight[k]
     tempHeightLeft <- height
     tempHeightRight <- height
 
     for (j in 1:100) {
-      leftSide <- fourPeaks$PeakIndex[k] - j
-      rightSide <- fourPeaks$PeakIndex[k] + j
+      leftSide <- peaks$PeakIndex[k] - j
+      rightSide <- peaks$PeakIndex[k] + j
       if (rowSums[leftSide] <= tempHeightLeft &
           rowSums[rightSide] <= tempHeightRight) {
 
@@ -295,24 +307,41 @@ finding_Peak_Start_Ends <- function(fourPeaks){
 
 
   }
-  ret <- data.frame(fourPeaks, peakStart, peakEnd)
+  ret <- data.frame(peaks, peakStart, peakEnd)
   return(ret)
 }
 
-find_peaks <- function(rowSums, minDistance){
+find_peaks <- function(rowSums, minDistance, maxPeakNumber){
+
   library("reticulate")
 
   fivePercent <- 0.05*max(rowSums)
   source_python("~/Magneto2020/Scripts/findPeaks.py")
-  peaks <- FindingPeaks(rowSums, fivePercent, distance)
+  peaks <- FindingPeaks(rowSums, fivePercent, minDistance)
   peaks[[1]] <- peaks[[1]] + 1 # python index correction
 
 
-  source("~/Magneto2020/Scripts/Functions.R")
-  Edge_Peaks_Check(peaks, rowSums)
-  fourPeaks <- Four_Peaks(peaks)
+
+  peaksNoEdge <- Edge_Peaks_Check(peaks, rowSums)
+  fourPeaks <- best_Peaks(peaksNoEdge, maxPeaks = maxPeakNumber)
 
   ret <- finding_Peak_Start_Ends(fourPeaks)
+  names(ret) <- c("peakIndex", "peakHeight", "peakStarts", "peakEnds")
   return(ret)
 
 }
+
+
+#' Checks for a null argument
+#' @param  parameter what you would like to check if is null
+#' @param parameterName Allows the error message to be in context
+#' @return stop if is null
+#' @export
+null <- function(parameter, parameterName){
+  if(is.null(parameter)) {
+    return(stop(paste0("Need to specify ", parameterName)))
+  }
+
+}
+
+
