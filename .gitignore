@@ -5,6 +5,7 @@ DigitizedPlots/
 Normal_Days_Per_month/
 *.tif
 *.csv
+*.png
 DigitizedImages/
 Images.txt
 ImagesPNG/

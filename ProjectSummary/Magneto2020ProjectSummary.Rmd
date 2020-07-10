@@ -83,7 +83,7 @@ Even with the symlinks working, there was still a problem with the chance of a d
 This keyword searcher was implemented into the **AutomationScript**; It allows users to digitize only specific images or specific ranges of images based off of the **DigitizationTODO** csv.  The user only needs to know the keyword and the function will find anything in the specified or non specified searching radius.
 
 
-```{r, out.width = '95%', echo = FALSE, fig.cap="FingingDays1: Permission Denied"}
+```{r, out.width = '95%', echo = FALSE, fig.cap="FindingDays1: Permission Denied"}
 knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/permissionDeniedErrorGetimages.png")
 ```
 
@@ -112,3 +112,16 @@ Arranging the successful conversions into an array consisting of columns for eac
 A problem arose here, as we needed to keep the start and end date of the directory the original image came from.  This was not easy as some of the directories contained more then one Axis from a specific day, therefore this directory start and end date had to be added to any columns that were appended by the images in that directory. 
 
 Now starting at the first element in a row, each End Date was compared to the next Start Date.  The advantage of using the datetime import is, subtracting two datetime objects gives the difference in days between them, which is the gap of the images we don't currently have.  This data is being sent to NRCAN to obtain these missing images so we can start the work on making the continuous time series in the future.
+
+
+## Brightness Testing
+
+A future goal put up by Mark Weygang in his masters thesis was to determine a way of automating the brightness part of TIS.  Currently the user would have to manually set if an image we were digitizing was bright **Figure: Bright1** or could be considered to be okay/not bright **Figure: Bright2**
+
+```{r, out.width = '95%', echo = FALSE, fig.cap="Bright1: Considered to be bright"}
+knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/brightImage.png")
+```
+
+```{r, out.width = '95%', echo = FALSE, fig.cap="Bright2: Considered to be a good contrast"}
+knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/goodContrast.png")
+```
