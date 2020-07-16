@@ -87,12 +87,12 @@ image_import <- function(image,file_loc){
 ImageTesting <- read.csv("~/Magneto2020/DataCSV/pngTODOTesting.csv", header = TRUE, stringsAsFactors = FALSE)
 
 
-file_loc <- as.character(ImageTesting$ImagePath[i])
-imageName <- as.character(ImageTesting$ImageName[i])
+file_loc <- "/home/ben/magnetoMARK/Images/Range/AGC-H-19260101-19281230/"#as.character(ImageTesting$ImagePath[i])
+imageName <- "AGC--H-19260107-19260109.tif"#as.character(ImageTesting$ImageName[i])
 
 
 image <- image_import(imageName, file_loc)
-source("~/Magneto2020/Scripts/Functions.R")
+source("~/Magneto2020/Scripts/Functions/Functions.R")
   
   
   image <- verticalImageCheck(image)
@@ -120,8 +120,8 @@ source("~/Magneto2020/Scripts/Functions.R")
     threshold <- (0.8*mean(rowSums))
     fivePercent <- 0.05*max(rowSums) #(sum(gaussImage[(nrow(gaussImage) - 130),]) + 1)^2
     distance <- 100
-    
-    fourPeaks <- find_peaks(rowSums = rowSums, minDistance =  distance, maxPeakNumber = 4)
+    saveRDS(rowSums, file = "~/Magneto2020/rowSums.RDS")
+    fourPeaks <- find_peaks(rowSums = rowSums, minDistance =  distance, maxPeakNumber = 4, percentFromEdge = 0.9)
   }
   if(bright == TRUE) {# this is bright = TRUE
     
@@ -147,7 +147,7 @@ source("~/Magneto2020/Scripts/Functions.R")
     fivePercent <- 0.05*max(rowSums)#(sum(gaussImage[(nrow(gaussImage) - 126),]) + 1)^2
     distance <- 50
     
-    fourPeaks <- find_peaks(rowSums, distance, 4)
+    fourPeaks <- find_peaks(rowSums,minDistance =  distance, 4, percentFromEdge = 0.9)
     
 
   }

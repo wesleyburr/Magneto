@@ -125,3 +125,19 @@ knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/brightIma
 ```{r, out.width = '95%', echo = FALSE, fig.cap="Bright2: Considered to be a good contrast"}
 knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/goodContrast.png")
 ```
+
+The first thing that needed to happen was to establish a baseline for what could be considered to be bright.  Taking a sample of 392 images, We created a vector of 1 or 0 based off of a decision we made if an image was bright or not using a list of criteria
+
+* Is the image border over exposed
+* Is the traces lost because of whiteness
+* Is there an over exposed part to the picture.
+
+If two or more of these were true, we answered yes to the image being bright.  
+Once this vector was established, there was a need to find a way of predicting the outcome;  A logistic regression model was used for this, as it gave us the probability of the image being bright.  The response(our decisions about the 392 images) was modeled by: 
+$$
+ \frac{\text{The pixels in the image above 0.8}}{\text{Total number of pixels}}
+$$
+```{r, out.width = '95%', echo = FALSE, fig.cap="Bright3: Regression Summary"}
+knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/LogisticRegression.png")
+```
+See **Figure: Bright3** for the results from the regression model. As one can see we have a significant p value for the slope of model aswell as passing the assumptions of the linear model

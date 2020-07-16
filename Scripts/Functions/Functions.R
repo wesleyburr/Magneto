@@ -38,7 +38,7 @@ findPathsForkeyword <- function(path = "~/", keyword = NULL){
   return(as.character(allPathWithKeyword[-1]))
 }
 
-
+#DONE
 #' Checks a given file path with name to see if the file is empty 0b
 #' @param filePath The path for the directory where the file is located
 #' @param fileName The name of the file located in the path directory
@@ -75,7 +75,7 @@ verticalImageCheck <- function(array){
 }
 
 
-
+#DONE
 #'Using a logistic regression to find coefficients, uses the result to compute a probability
 #'of the image being #'bright (392 observations) with McFadden Pseudo- $R^2$ Value 0.2573778
 #'@param matrix of image points representing the brightness of that pixel
@@ -100,6 +100,7 @@ brightProb <- function(image, cutoffProbability = 0.5){
   return(bright)
 }
 
+#DONE
 #'checks to see if the last part of a file name is .tif or .tiff *It doesn't split any part of the name*
 #'@param imageName in the form AGC--H-19260314-19260316.tif
 #'@return bool of TRUE or FALSE
@@ -116,7 +117,7 @@ is_Tiff <- function(imageName){
   }
 }
 
-
+#DONE
 #'Reads tiff (also checks for if the image is a .tif or .tiff)
 #'@param image The image name
 #'@param file_location the path from ~/ to the dir where the file is
@@ -132,40 +133,45 @@ image_import <- function(image,file_loc){
 
 }
 
+#DONE
+aloudEdgeDistance <- function(rowSums, percentage){
+  rightDistance <- round(percentage*length(rowSums))
+  leftDistance <- round((1 - percentage)*length(rowSums))
+  ret <- c(rightDistance, leftDistance)
+  return(ret)
+}
+
+#DONE
 #'Checks the list of peaks for any flairs in the photos at start and end, they are removed
 #'@param FindingPeaksVector the resulting vector from FindingPeaks
 #'@param rowSums of the data frame
 #'@return void
-Edge_Peaks_Check <- function(FindingPeaksVector, rowSums){
-
+Edge_Peaks_Check <- function(FindingPeaksVector, rowSums, percentEdge){
+  rm <- vector()
+  dist <- aloudEdgeDistance(rowSums, percentEdge)
+  rightSide <- dist[1]
+  leftSide <- dist[2]
   for (k in 1:length(FindingPeaksVector[[1]])) {
-    if (is.na(rowSums[FindingPeaksVector[[1]][k] + 20])){
-      FindingPeaksVector[[1]] <- FindingPeaksVector[[1]][-k]
-      FindingPeaksVector[[2]]$peak_heights <- FindingPeaksVector[[2]]$peak_heights[-k]
-    }
-    else if (is.na(rowSums[FindingPeaksVector[[1]][k] - 20])){
-      FindingPeaksVector[[1]] <- FindingPeaksVector[[1]][-k]
-      FindingPeaksVector[[2]]$peak_heights <- FindingPeaksVector[[2]]$peak_heights[-k]
-    }
 
-    else if (rowSums[FindingPeaksVector[[1]][k] + 20] == rowSums[length(rowSums)]) {
+    if (FindingPeaksVector[[1]][k] >= rightSide) {
 
-      FindingPeaksVector[[1]] <- FindingPeaksVector[[1]][-k]
-      FindingPeaksVector[[2]]$peak_heights <- FindingPeaksVector[[2]]$peak_heights[-k]
+      rm <- c(rm, FindingPeaksVector[[1]][k])
 
     }
-    else if (rowSums[FindingPeaksVector[[1]][k] - 20] == rowSums[1]) {
+    else if (FindingPeaksVector[[1]][k] <= leftSide) {
 
-      FindingPeaksVector[[1]] <- FindingPeaksVector[[1]][-k]
-      FindingPeaksVector[[2]]$peak_heights <- FindingPeaksVector[[2]]$peak_heights[-k]
+      rm <- c(rm, FindingPeaksVector[[1]][k])
 
     }
   }
+  FindingPeaksVector[[2]]$peak_heights <- FindingPeaksVector[[2]]$peak_heights[-which(FindingPeaksVector[[1]] == rm)]
+  FindingPeaksVector[[1]] <- FindingPeaksVector[[1]][-which(FindingPeaksVector[[1]] == rm)]
+
   return(FindingPeaksVector)
 }
 
 
-
+#DONE
 best_Peaks <- function(findingPeaksVector, maxPeaks){
 
   highestPeaksIndex <- vector()
@@ -231,7 +237,7 @@ finding_Peak_Start_Ends <- function(peaks, rowSums){
   return(ret)
 }
 
-find_peaks <- function(rowSums, minDistance, maxPeakNumber){
+find_peaks <- function(rowSums, minDistance, maxPeakNumber, percentFromEdge){
 
   library("reticulate")
   browser()
@@ -239,10 +245,12 @@ find_peaks <- function(rowSums, minDistance, maxPeakNumber){
   source_python("~/Magneto2020/Scripts/findPeaks.py")
   peaks <- FindingPeaks(rowSums, fivePercent, minDistance)
   peaks[[1]] <- peaks[[1]] + 1 # python index correction
+  peakIndex <- peaks[[1]]
+  peakHeight <- peaks[[2]]$peak_heights
+  peakInfo = data.frame(Index = peakIndex, Height = peakHeight)
 
 
-
-  peaksNoEdge <- Edge_Peaks_Check(peaks, rowSums)
+  peaksNoEdge <- Edge_Peaks_Check(peakInfo, rowSums, percentFromEdge)
   fourPeaks <- best_Peaks(peaksNoEdge, maxPeaks = maxPeakNumber)
 
   ret <- finding_Peak_Start_Ends(fourPeaks, rowSums)
