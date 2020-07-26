@@ -1,0 +1,61 @@
+---
+title: "getEndsTesting.Rmd"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+ImageTesting <- read.csv("~/Magneto2020/DataCSV/TODOBatch5.csv", header = TRUE, stringsAsFactors = FALSE)
+```
+
+```{r}
+
+file_loc <- as.character(ImageTesting[i,1])
+imageName <- as.character(ImageTesting[i,2])
+
+image <- tiff_import(fileName = imageName, fileLoc = file_loc)
+hImage <- as.matrix(.horizontal_image_check(image))
+bright <- bright(hImage)
+# if (bright == TRUE) {
+processedImage <- .for_bright_image(hImage)
+# }
+# if (bright == FALSE) {
+#   processedImage <- .not_bright_image(hImage)
+# }
+
+#rmImage <- processedImage$gaussimageMatrix[,-c(0:twoPerc, (columns - twoPerc):columns)]
+rowSumsImage <- rowSums(processedImage$gaussImageMatrix)
+colSumsImage <- colSums(processedImage$gaussImageMatrix)
+
+#plot(colSumsImage, type = "l")
+
+len <- length(colSumsImage)
+twoPerc <- round((0.05*len))
+diffsColSms <- abs(diff(colSumsImage))
+possibleStartDiffs <- which(diffsColSms >= 0.05)
+diffsOfDiffs <- diff(possibleStartDiffs)
+chosenDiffs <- possibleStartDiffs[which(abs(diff(possibleStartDiffs))  <= 20)]
+#chosenDiffsRm <- chosenDiffs[which(chosenDiffs <= (len - twoPerc) & chosenDiffs >= twoPerc)]
+first <- chosenDiffs[1]
+last <- chosenDiffs[length(chosenDiffs)]
+for (j in 1:1000) {
+  if (colSumsImage[first + j] <= colSumsImage[first]) {
+    newFirst <- first + j
+  }
+}
+
+plot(colSumsImage, type = "l")
+abline(v = c(newFirst, last))
+ImageNoSides <- processedImage$gaussImageMatrix[,-c(0:newFirst, last:ncol(hImage))]
+#plot(colSums(ImageNoSides))
+#rtiff::writeTiff(ImageNoSides, "~/Magneto2020/brightImageIntersection19260908.tif")
+#writeTiff()
+```
+
+```{r}
+i <- i + 1
+```
+

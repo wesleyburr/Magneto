@@ -6,7 +6,7 @@ library("data.table")
 library("functional")
 library("OpenImageR")
 
-
+#DONE
 #' Finds all files that contain a specific string, in this case for finding files
 #' that contain a specific year.
 #' @param path Where you would like the function to look.
@@ -56,7 +56,7 @@ notEmptyFile <- function(filePath = NA, fileName = NA){
   }
 }
 
-
+#DONE
 #' Checks to see if the image is vertical or horizontal
 #' @param array The array of an imported tiff,png,etc...
 #' @return The array horizontally
@@ -192,7 +192,7 @@ best_Peaks <- function(findingPeaksVector, maxPeaks){
   return(bestPeaks)
 }
 
-# TODO put a dimension check on this function
+#DONE
 finding_Peak_Start_Ends <- function(peaks, rowSums){
 
   peakStart <- vector()
@@ -237,6 +237,7 @@ finding_Peak_Start_Ends <- function(peaks, rowSums){
   return(ret)
 }
 
+#DONE
 find_peaks <- function(rowSums, minDistance, maxPeakNumber, percentFromEdge){
 
   library("reticulate")
@@ -259,7 +260,7 @@ find_peaks <- function(rowSums, minDistance, maxPeakNumber, percentFromEdge){
 
 }
 
-
+#DONE
 #' Checks for a null argument
 #' @param  parameter what you would like to check if is null
 #' @param parameterName Allows the error message to be in context

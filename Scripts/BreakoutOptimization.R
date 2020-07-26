@@ -1,7 +1,7 @@
 # MarkBreakOut2_1.R
 
 ########## Part 1 ======================================================================================================
-deconvGauss <- function( x, sig = 10, kern.trunc = 0.05, nw = 4 ){
+deconvGauss <- function(x, sig = 10, kern.trunc = 0.05, nw = 4 ){
   require(multitaper)
   # Try 1d deconvolution
 

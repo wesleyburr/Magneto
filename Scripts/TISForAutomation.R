@@ -11,11 +11,9 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
   source("~/Magneto2020/Scripts/CustomFunctions.R")
   source("~/Magneto2020/Scripts/Functions.R")
 
-  ## Functions ------------------------------------------------------------------
+  ## Functions ---------------------------------------------------------------
 
-
-
-
+#TODO
   classArrayEdit <- function(magnetogram){
     magnetogram <- magnetogram[,,1]
     magnetogram <- 1/magnetogram
@@ -26,6 +24,7 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
     return(magnetogram)
   }
 
+  #DONE
   verticalImageCheck <- function(magnetogram){
     ncol_magnetogram <- ncol(magnetogram)
     nrow_magnetogram <- nrow(magnetogram)
@@ -38,6 +37,7 @@ TISForAutomation <- function(file_location = 0, image_name = FALSE,
     }
     return(retVal)
   }
+  #dont need anymore
   brightImages <- function(magnetogram){
     magnetogram <- 1 / magnetogram
     if (min(magnetogram) == 1) {
