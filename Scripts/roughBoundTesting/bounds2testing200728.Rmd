@@ -1,0 +1,85 @@
+---
+title: "find-bounds2Testing.Rmd"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+ImageTesting <- read.csv("~/Magneto2020/DataCSV/TODOBatch5.csv", header = TRUE, stringsAsFactors = FALSE)
+```
+```{r}
+i <- 1
+```
+
+```{r}
+
+file_loc <- as.character(ImageTesting[i,1])
+imageName <- as.character(ImageTesting[i,2])
+
+image <- tiff_import(fileName = imageName, fileLoc = file_loc)
+imageNoSides <- .get_trace_start_ends(image, returnMat = TRUE)
+imageMatrix <- imageNoSides$imageMatrix
+```
+
+#' Finding Rough Bounds for Two Traces
+#'
+#' @param imageMatrix An imported image, can be imported with tiff_import()
+#' @param FindPeaksdf -- Row Index, Max Height, PeakStart, PeakEnd -- identifies traces by summing rows
+#' @param rowSums Of the imported matrix from original picture
+#' @param max_roc Maximum Rate-of-Change of pixel location column-by-column
+#' @returns
+#
+```{r}
+max_roc <- 20
+rowsums <- rowSums(imageMatrix)
+ min_white <- apply(imageMatrix, MAR = 2, FUN = function(x) {
+    min( which(x == 1) )
+  })
+
+  # Some are text and artifacts
+  d_e <- diff(min_white)
+  bad_text <- which(abs(d_e) >= max_roc)  # need to check here
+
+  # Instead, jump to other side of these ... then find the first white going down
+  min_white_fix <- apply(imageMatrix[, bad_text], MAR = 2, FUN = function(x) {
+    first_white <- min( which(x == 1) )
+    bottom_first <- min( which(x[(first_white + 1):length(x)] == 0) )
+    min( which( x[(bottom_first + 1):length(x)] == 1 ) )
+  })
+  min_white[bad_text] <- min_white_fix
+
+  ############################################################################
+  ##
+  ## Lower bound, trace 4? (lower = bottom of image)
+
+  # Last white pixel per column
+  max_white <- apply(imageMatrix, MAR = 2, FUN = function(x) {
+    max( which(x == 1) )
+  })
+
+  # Some are text and artifacts
+  d_e <- diff(max_white)
+  bad_text <- which(abs(d_e) >= max_roc)  # need to check bad_text for length > 1
+
+  # Instead, jump to other side of these ... then find the first white going down
+  max_white_fix <- apply(imageMatrix[, bad_text], MAR = 2, FUN = function(x) {
+    last_white <- max( which(x == 1) )
+    bottom_black <- max( which(x[1:(last_white - 1)] == 0) )
+    max( which( x[1:(bottom_black - 1)] == 1 ) )
+  })
+  max_white[bad_text] <- max_white_fix
+
+  # fix the bound indexes to make sense?
+  #return(list(top_bound = min_white, bottom_bound = max_white))
+
+
+```
+
+
+```{r}
+i <- i + 1
+```
+
