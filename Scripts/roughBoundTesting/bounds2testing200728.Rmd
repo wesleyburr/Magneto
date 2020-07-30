@@ -19,9 +19,17 @@ i <- 1
 file_loc <- as.character(ImageTesting[i,1])
 imageName <- as.character(ImageTesting[i,2])
 
-image <- tiff_import(fileName = imageName, fileLoc = file_loc)
-imageNoSides <- .get_trace_start_ends(image, returnMat = TRUE)
-imageMatrix <- imageNoSides$imageMatrix
+imageRAW <- tiff_import(fileName = imageName, fileLoc = file_loc)
+image <- .horizontal_image_check(imageRAW)
+imageSides <- .get_trace_start_ends(image, returnMat = FALSE)
+bright <- bright(image)
+if (bright == TRUE) {
+  imageProcessed <- .for_bright_image(image)
+}
+if (bright == FALSE) {
+  imageProcessed <- .not_bright_image(image)
+}
+imageMatrix <- imageProcessed$imageMatrix[,-c(0:imageSides$Start, imageSides$End:ncol(imageProcessed$imageMatrix))]
 ```
 
 #' Finding Rough Bounds for Two Traces
@@ -33,30 +41,37 @@ imageMatrix <- imageNoSides$imageMatrix
 #' @returns
 #
 ```{r}
-max_roc <- 20
-rowsums <- rowSums(imageMatrix)
- min_white <- apply(imageMatrix, MAR = 2, FUN = function(x) {
-    min( which(x == 1) )
+  max_roc <- 20
+  rowsums <- rowSums(imageMatrix)
+  
+ min_white <- apply(imageMatrix, MARGIN = 2, FUN = function(x) {
+   if (sum(x) == 0) {
+     white <- 0
+   } 
+   else {
+   white <- min( which(x == 1) )
+   }
+  return(white)
   })
-
+  
   # Some are text and artifacts
   d_e <- diff(min_white)
   bad_text <- which(abs(d_e) >= max_roc)  # need to check here
 
   # Instead, jump to other side of these ... then find the first white going down
-  min_white_fix <- apply(imageMatrix[, bad_text], MAR = 2, FUN = function(x) {
+  min_white_fix <- apply(imageMatrix[, bad_text], MARGIN = 2, FUN = function(x) {
     first_white <- min( which(x == 1) )
     bottom_first <- min( which(x[(first_white + 1):length(x)] == 0) )
     min( which( x[(bottom_first + 1):length(x)] == 1 ) )
   })
   min_white[bad_text] <- min_white_fix
-
+  correctedWhite <- ncol(imageMatrix) - min_white
   ############################################################################
   ##
   ## Lower bound, trace 4? (lower = bottom of image)
 
   # Last white pixel per column
-  max_white <- apply(imageMatrix, MAR = 2, FUN = function(x) {
+  max_white <- apply(imageMatrix, MARGIN = 2, FUN = function(x) {
     max( which(x == 1) )
   })
 
@@ -65,7 +80,7 @@ rowsums <- rowSums(imageMatrix)
   bad_text <- which(abs(d_e) >= max_roc)  # need to check bad_text for length > 1
 
   # Instead, jump to other side of these ... then find the first white going down
-  max_white_fix <- apply(imageMatrix[, bad_text], MAR = 2, FUN = function(x) {
+  max_white_fix <- apply(imageMatrix[, bad_text], MARGIN = 2, FUN = function(x) {
     last_white <- max( which(x == 1) )
     bottom_black <- max( which(x[1:(last_white - 1)] == 0) )
     max( which( x[1:(bottom_black - 1)] == 1 ) )
