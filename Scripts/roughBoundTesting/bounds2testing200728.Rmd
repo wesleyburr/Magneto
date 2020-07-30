@@ -27,10 +27,15 @@ if (bright == TRUE) {
   imageProcessed <- .for_bright_image(image)
 }
 if (bright == FALSE) {
-  imageProcessed <- .not_bright_image(image)
+  imageProcessed <- .not_bright_image(image, cutoffQuantile = 0.95)
 }
-imageMatrix <- imageProcessed$imageMatrix[,-c(0:imageSides$Start, imageSides$End:ncol(imageProcessed$imageMatrix))]
+imageMatrix <- imageProcessed$gaussImageMatrix[-c(0:200),-c(0:imageSides$Start, imageSides$End:ncol(imageProcessed$imageMatrix))]
 ```
+
+```{r}
+
+```
+
 
 #' Finding Rough Bounds for Two Traces
 #'
@@ -42,6 +47,7 @@ imageMatrix <- imageProcessed$imageMatrix[,-c(0:imageSides$Start, imageSides$End
 #
 ```{r}
   max_roc <- 20
+
   rowsums <- rowSums(imageMatrix)
   
  min_white <- apply(imageMatrix, MARGIN = 2, FUN = function(x) {
