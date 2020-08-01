@@ -1,0 +1,43 @@
+---
+title: "testingEnv"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+ImageTesting <- read.csv("~/Magneto2020/DataCSV/TODOBatch5.csv", header = TRUE, stringsAsFactors = FALSE)
+```
+```{r}
+k <- 1
+j <- sample(1:26000, size = 100, replace = FALSE)
+
+```
+
+```{r}
+i <- j[k]
+library(magneto)
+file_loc <- as.character(ImageTesting[i,1])
+imageName <- as.character(ImageTesting[i,2])
+
+imageRAW <- tiff_import(fileName = imageName, fileLoc = file_loc)
+image <- .horizontal_image_check(imageRAW)
+imagecut <- .trim_top_bottom(image, trimAmount = 20)
+imageSides <- .get_trace_start_ends(imagecut, returnMat = FALSE)
+imageProcessed <- .processImage(imagecut, cutoffQuantile = 0.95, cutoffProbability = 0.5)
+imageMatrix <- imageProcessed$gaussImageMatrix#[,-c(0:imageSides$Start,imageSides$End:ncol(imageProcessed$gaussImageMatrix))]
+topcut <- .top_image_cut(imageMatrix = imageMatrix)
+imageMatrixTopCut <- imageMatrix[-c(0:topcut),]
+
+
+suppressWarnings(plot(imageMatrix))
+abline(h = (nrow(imageMatrix) - topcut), col = "green")
+abline(v = c(imageSides$Start, imageSides$End), col = "green")
+```
+```{r}
+k <- k + 1
+```
+
+
