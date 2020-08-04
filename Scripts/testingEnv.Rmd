@@ -16,8 +16,10 @@ j <- sample(1:26000, size = 100, replace = FALSE)
 
 ```
 
+
 ```{r}
-i <- j[k]
+#i <- j[k]
+i <- 215
 library(magneto)
 file_loc <- as.character(ImageTesting[i,1])
 imageName <- as.character(ImageTesting[i,2])
@@ -28,12 +30,15 @@ imagecut <- .trim_top_bottom(image, trimAmountTop = 100, trimAmountBottom = 50)
 imageSides <- .get_trace_start_ends(imagecut, returnMat = FALSE)
 imageProcessed <- .processImage(imagecut, cutoffQuantile = 0.95, cutoffProbability = 0.5)
 imageMatrix <- imageProcessed$gaussImageMatrix#[,-c(0:imageSides$Start,imageSides$End:ncol(imageProcessed$gaussImageMatrix))]
-topcut <- .top_image_cut(imageMatrix = imageMatrix)
+topcut <- .top_image_cut(imageMatrix = imageMatrix, percentFromEdge = 2, percentEdgeForLeft = 50)
+bottomcut <- .bottom_image_cut(imageMatrix = imageMatrix, percentEdgeForLeft = 25,
+                               percentFromEdge = 2, shortestAlowedSeqOfZeros = 15)
 imageMatrixTopCut <- imageMatrix[-c(0:topcut),]
 
 
 suppressWarnings(plot(imageMatrix))
-abline(h = (nrow(imageMatrix) - topcut), col = "green")
+abline(h = (nrow(imageMatrix) - topcut), col = "green") # plot indexing backwords so need nrow - number
+abline(h = (nrow(imageMatrix) - bottomcut), col = "green")
 abline(v = c(imageSides$Start, imageSides$End), col = "green")
 ```
 ```{r}

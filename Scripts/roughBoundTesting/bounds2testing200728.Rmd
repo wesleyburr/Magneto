@@ -16,22 +16,40 @@ i <- 1
 ```
 
 ```{r}
+i <- 1
 library(magneto)
-file_loc <- as.character(ImageTesting[i,1])
-imageName <- as.character(ImageTesting[i,2])
+file_locGood <- as.character(ImageTesting[i,1])
+imageNameGood <- as.character(ImageTesting[i,2])
 
-imageRAW <- tiff_import(fileName = imageName, fileLoc = file_loc)
-image <- .horizontal_image_check(imageRAW)
-imagecut <- .trim_top_bottom(image)
-imageSides <- .get_trace_start_ends(imagecut, returnMat = FALSE)
-imageProcessed <- .processImage(imagecut, cutoffQuantile = 0.95)
-imageMatrix <- imageProcessed$gaussImageMatrix[,-c(0:imageSides$Start,imageSides$End:ncol(imageProcessed$gaussImageMatrix))]
-topcut <- .top_image_cut(imageMatrix = imageMatrix)
-imageMatrixTopCut <- imageMatrix[-c(0:topcut),]
-
+imageRAWGood <- tiff_import(fileName = imageNameGood, fileLoc = file_locGood)
+imageGood <- .horizontal_image_check(imageRAWGood)
+imagecutGood <- .trim_top_bottom(imageGood)
+imageSidesGood <- .get_trace_start_ends(imagecutGood, returnMat = FALSE)
+imageProcessedGood <- .processImage(imagecutGood, cutoffQuantile = 0.95)
+imageMatrixGood <- imageProcessedGood$gaussImageMatrix[,-c(0:imageSidesGood$Start,imageSidesGood$End:ncol(imageProcessedGood$gaussImageMatrix))]
+topcutGood <- .top_image_cut(imageMatrix = imageMatrixGood, percentFromEdge = 2, percentEdgeForLeft = 25)
+bottomcutGood <- .bottom_image_cut(imageMatrix = imageMatrixGood, percentEdgeForLeft = 25, percentFromEdge = 2, shortestAlowedSeqOfZeros = 25)
+imageMatrixTopCutGood <- imageMatrixGood[-c(0:topcutGood),]
+rowsumsImageGood <- rowSums(imageMatrixGood)
 ```
 
+```{r}
+i <- 147
+library(magneto)
+file_locBad <- as.character(ImageTesting[i,1])
+imageNameBad <- as.character(ImageTesting[i,2])
 
+imageRAWBad <- tiff_import(fileName = imageNameBad, fileLoc = file_locBad)
+imageBad <- .horizontal_image_check(imageRAWBad)
+imagecutBad <- .trim_top_bottom(imageBad)
+imageSidesBad <- .get_trace_start_ends(imagecutBad, returnMat = FALSE)
+imageProcessedBad <- .processImage(imagecutBad, cutoffQuantile = 0.95)
+imageMatrixBad <- imageProcessedBad$gaussImageMatrix[,-c(0:imageSidesBad$Start,imageSidesBad$End:ncol(imageProcessedBad$gaussImageMatrix))]
+topcutBad <- .top_image_cut(imageMatrix = imageMatrixBad, percentFromEdge = 2, percentEdgeForLeft = 25)
+bottomcutBad <- .bottom_image_cut(imageMatrix = imageMatrixBad, percentEdgeForLeft = 25, percentFromEdge = 2, shortestAlowedSeqOfZeros = 25)
+imageMatrixTopCutBad <- imageMatrixBad[-c(0:topcutBad),]
+rowsumsImageBad <- rowSums(imageMatrixBad)
+```
 
 ```{r}
 library("zoo")
