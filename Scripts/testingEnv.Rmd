@@ -24,7 +24,7 @@ imageName <- as.character(ImageTesting[i,2])
 
 imageRAW <- tiff_import(fileName = imageName, fileLoc = file_loc)
 image <- .horizontal_image_check(imageRAW)
-imagecut <- .trim_top_bottom(image, trimAmount = 20)
+imagecut <- .trim_top_bottom(image, trimAmountTop = 100, trimAmountBottom = 50)
 imageSides <- .get_trace_start_ends(imagecut, returnMat = FALSE)
 imageProcessed <- .processImage(imagecut, cutoffQuantile = 0.95, cutoffProbability = 0.5)
 imageMatrix <- imageProcessed$gaussImageMatrix#[,-c(0:imageSides$Start,imageSides$End:ncol(imageProcessed$gaussImageMatrix))]
@@ -39,5 +39,26 @@ abline(v = c(imageSides$Start, imageSides$End), col = "green")
 ```{r}
 k <- k + 1
 ```
+
+
+```{r}
+#these are both random samples, of the scuesses of the start and ends
+start <- c(346, 371, 80, 208, 268, 222, 274, 95, 330, 427, 271, 262, 390, 352,
+           354, 436, 175, 377, 225, 315, 352, 351, 264, 339, 149, 318, 327, 499,
+           401, 401, 346, 358, 329, 249, 320, 360, 255, 276, 324, 242, 288, 197, 
+           289, 399, 282, 314, 326, 314, 355, 341, 293, 352, 337, 374, 354, 414,
+           354, 636, 183, 357, 305, 327, 336, 359, 349, 292, 282, 287, 256, 301, 
+           162)
+
+end <- c(5940, 5883, 5712, 6042, 6033, 6035, 6030, 5788, 5952, 5966, 5904, 5914,
+         5967, 6028, 5903, 5991, 5808, 6046, 5885, 5967, 5959, 5953, 5881, 5943,
+         6058, 5937, 5920, 5983, 5920, 5903, 5929, 5967, 5894, 6008, 6112, 5821,
+         5046, 5909, 5916, 5867, 5882, 5865, 5845, 5925, 5901, 5909, 5901, 6059,
+         5958, 6036, 5791, 5908, 5895, 5948, 5790, 5486, 5658, 6002, 5702, 5927, 
+         6064, 5930, 5904, 5942, 5892, 5908, 5833, 5882, 5819, 5897, 5849)
+
+startEnd <- data.frame(start = start, end = end)
+```
+
 
 
