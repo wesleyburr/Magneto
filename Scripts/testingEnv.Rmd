@@ -19,35 +19,130 @@ j <- sample(1:26000, size = 100, replace = FALSE)
 
 ```{r}
 #i <- j[k]
-i <- 215
+i <- 1
 library(magneto)
-file_loc <- as.character(ImageTesting[i,1])
-imageName <- as.character(ImageTesting[i,2])
+library("zoo")
+  file_loc <- as.character(ImageTesting[i,1])
+  imageName <- as.character(ImageTesting[i,2])
 
-imageRAW <- tiff_import(fileName = imageName, fileLoc = file_loc)
-image <- .horizontal_image_check(imageRAW)
-imagecut <- .trim_top_bottom(image, trimAmountTop = 100, trimAmountBottom = 50)
-imageSides <- .get_trace_start_ends(imagecut, returnMat = FALSE)
-imageProcessed <- .processImage(imagecut, cutoffQuantile = 0.95, cutoffProbability = 0.5)
-imageMatrix <- imageProcessed$gaussImageMatrix#[,-c(0:imageSides$Start,imageSides$End:ncol(imageProcessed$gaussImageMatrix))]
-topcut <- .top_image_cut(imageMatrix = imageMatrix, percentFromEdge = 2, percentEdgeForLeft = 50)
-bottomcut <- .bottom_image_cut(imageMatrix = imageMatrix, percentEdgeForLeft = 25,
-                               percentFromEdge = 2, shortestAlowedSeqOfZeros = 15)
-imageMatrixTopCut <- imageMatrix[-c(0:topcut),]
-
-
-suppressWarnings(plot(imageMatrix))
-abline(h = (nrow(imageMatrix) - topcut), col = "green") # plot indexing backwords so need nrow - number
-abline(h = (nrow(imageMatrix) - bottomcut), col = "green")
-abline(v = c(imageSides$Start, imageSides$End), col = "green")
+  imageRAW <- tiff_import(fileName = imageName, fileLoc = file_loc)
+  image <- magneto::.horizontal_image_check(imageRAW)
+  imagecut <- magneto::.trim_top_bottom(image, trimAmountTop = 100, trimAmountBottom = 50) #takes off the usual flair spots
+  #imageSides <- magneto::.get_trace_start_ends(imagecut, returnMat = FALSE)
+  imageSides <- magneto::.get_trace_start_ends(imagecut, returnMat = FALSE, cutPercentage = 2) # two vertical lines
+  imageMatrix <- .process_image(imagecut) # checks bright and processes returns processed
+  #imageMatrix <- edge_detection(imagecut, method = "Sobel")
+  imageWithoutSides <- imageMatrix[, -c(0:imageSides$Start, imageSides$End:ncol(imageMatrix))] #takes away the sides found above
+  # finds top horizontal line
+  topcut <- magneto::.top_image_cut(imageMatrix = imageWithoutSides, percentFromEdge = 2, percentEdgeForLeft = 25)
+  #finds bottom horizontal line
+  bottomcut <- tryCatch(magneto::.bottom_image_cut(imageMatrix = imageWithoutSides, percentEdgeForLeft = 25,
+                                                   percentFromEdge = 2, shortestAlowedSeqOfZeros = 15), warning = function(w) w)
+  if (inherits(bottomcut, "warning")) {
+    print(bottomcut)
+    print(imageName)
+    bottomcut <- nrow(imageMatrix) # this is the only way I know of doing this
+  }
+  if (bottomcut != nrow(imageMatrix) & !inherits(topcut, "warning")) {
+    imageWithoutTopBottom <- imageMatrix[-c(0:topcut, bottomcut:nrow(image)), ]
+    vert <- t(imageWithoutTopBottom)
+    rolledImage <- t(rollmean(vert, k = 75, fill = "extend"))
+    rolledImage[which(rolledImage != 0)] <- 1
+  }
+  plot(rolledImage)
+  
+# suppressWarnings(plot(imageMatrix))
+#   abline(h = (nrow(imageMatrix) - topcut), col = "green")
+#   abline(h = (nrow(imageMatrix) - bottomcut), col = "green")
+#   abline(v = c(imageSides$Start, imageSides$End), col = "green")
+#   text(imageSides$Start, x = 800, y = 1500, col = "green")
+#   text(imageSides$End, x = 5000, y = 1500, col = "green")
 ```
+
+
+```{r}
+max_roc <- 20
+#while (TRUE) {
+min_white <- apply(rolledImage, MARGIN = 2, FUN = function(x) {
+   if (sum(x) == 0) {
+     white <- 0
+   } 
+   else {
+   white <- min( which(x == 1) )
+   }
+  return(white)
+  })
+  
+  # Some are text and artifacts
+d_e <- diff(min_white)
+bad_text <- which(abs(d_e) >= max_roc)
+if ((length(bad_text) %% 2) == 0) { # even
+  bad_text
+}
+if (is.na(bad_text[1]) == FALSE) {
+  # Instead, jump to other side of these ... then find the first white going down
+  min_white_fix <- apply(rolledImage[, bad_text], MARGIN = 2, FUN = function(x) {
+    ones <- which(x == 1)
+    if (length(ones) != 0) { # there is a one in that row
+      first_white <- min( ones )
+      bottom_first <- min( which(x[(first_white + 1):length(x)] == 0) )
+      tempMin <- min( which( x[(bottom_first + 1):length(x)] == 1 ) )
+      if (tempMin > (mean(min_white) + 50)) {
+        bottom_first <- min( which(x[(tempMin + 1):length(x)] == 0) )
+        tempMin <- min( which( x[(bottom_first + 1):length(x)] == 1 ) )
+        return(tempMin)
+      }
+      else {
+        return(tempMin)
+      }
+    }
+    else {# there aren't any ones in that row
+      return(NA) 
+    }
+  })
+  
+  #correction for rows with no white found
+  min_white[bad_text] <- min_white_fix
+  possibleGaps <- which(is.na(min_white)) # picks up the 0 rows found above
+  if (length(possibleGaps) != 0) {
+      start <- imageSides$Start
+      end <- imageSides$End
+    for (i in 1:length(possibleGaps)) {
+      compare <- possibleGaps[i]
+      left <- min_white[compare - 1]
+      right <- min_white[compare + 1]
+      # first and last pixel
+      if (compare == 0 || compare == length(min_white)) {
+        min_white[compare] = 0
+      }
+      #probably in the start or end of the image before the trace
+      else if (left != 0 || right != 0) { 
+        sides <- c(left, right)
+        min_white[compare] <- sides[which(sides != 0)][1] # will take the left if both aren't 0 
+      }
+    }
+  }
+}
+#}
+  correctedWhite <- nrow(imageWithoutTopBottom) - min_white
+  plot(imageWithoutTopBottom)
+  lines(y = correctedWhite, x = 1:ncol(imageWithoutTopBottom), col = "green")
+  
+```
+
+
+
+
+
+
+
 ```{r}
 k <- k + 1
 ```
 
 
 ```{r}
-#these are both random samples, of the scuesses of the start and ends
+#these are both random samples, of the successes of the start and ends
 start <- c(346, 371, 80, 208, 268, 222, 274, 95, 330, 427, 271, 262, 390, 352,
            354, 436, 175, 377, 225, 315, 352, 351, 264, 339, 149, 318, 327, 499,
            401, 401, 346, 358, 329, 249, 320, 360, 255, 276, 324, 242, 288, 197, 
@@ -66,4 +161,128 @@ startEnd <- data.frame(start = start, end = end)
 ```
 
 
+
+```{r}
+max_roc <- 20
+
+min_white <- apply(rolledImage, MARGIN = 2, FUN = function(x) {
+   if (sum(x) == 0) {
+     white <- 0
+   } 
+   else {
+   white <- min( which(x == 1) )
+   }
+  return(white)
+  })
+#starting at the middle to be safe, will work backwords after
+foundNonZero <- FALSE
+for (i in (round(ncol(rolledImage))/2):ncol(rolledImage)) { # need for loop because need to be able to just back an index
+  x <- min_white[i]
+  #first column or no nonZero column found yet
+  if ( i == 1 || isFALSE(foundNonZero)) {
+    if (min_white[i] != 0) {
+      foundNonZero <- TRUE
+   }
+  }
+  # a non zero column is found
+  else if (isTRUE(foundNonZero)) {
+    oneLess <- min_white[i - 1]
+    diff <- x - oneLess
+    if (diff >= max_roc) { # big change, could be a jump
+      if (diff > 0) { # new point is higher then old point
+        min_white[i] <- min_white[i - 1] + 2 # 2 added to be safe
+      }
+      if (diff < 0) { # new point is below old point, cold be a timing gap
+        min_white[i] <- min_white[i - 1] - 2 # 2 subtracted to be safe
+      }
+    }  
+  }
+} 
+
+# The reverse, the first half of the image
+  foundNonZero <- FALSE
+for (j in 1:(round(ncol(rolledImage))/2 + 1)) { # need for loop because need to be able to just back an index
+  i <- (round(ncol(rolledImage))/2 + 1) - j
+  x <- min_white[i]
+  #first column or no nonZero column found yet
+  if ( j == 1 || isFALSE(foundNonZero)) {
+    if (min_white[i] != 0) {
+      foundNonZero <- TRUE
+   }
+  }
+  # a non zero column is found
+  else if (isTRUE(foundNonZero)) {
+    oneLess <- min_white[i + 1] # actually more because reverse indexing
+    diff <-  oneLess - x
+    if (diff >= max_roc) { # big change, could be a jump
+      if (diff > 0) { # new point is higher then old point
+        min_white[i] <- min_white[i + 1] + 2 # 2 added to be safe
+      }
+      if (diff < 0) { # new point is below old point, cold be a timing gap
+        min_white[i] <- min_white[i + 1] - 2 # 2 subtracted to be safe
+      }
+    }  
+  }
+}
+
+correctedWhite <- nrow(imageWithoutTopBottom) - min_white
+plot(imageWithoutTopBottom)
+lines(y = correctedWhite, x = 1:ncol(imageWithoutTopBottom), col = "green")
+  
+  # Some are text and artifacts
+# d_e <- diff(min_white)
+# bad_text <- which(abs(d_e) >= max_roc)
+# if ((length(bad_text) %% 2) == 0) { # even
+#   bad_text
+# }
+# if (is.na(bad_text[1]) == FALSE) {
+#   # Instead, jump to other side of these ... then find the first white going down
+#   min_white_fix <- apply(rolledImage[, bad_text], MARGIN = 2, FUN = function(x) {
+#     ones <- which(x == 1)
+#     if (length(ones) != 0) { # there is a one in that row
+#       first_white <- min( ones )
+#       bottom_first <- min( which(x[(first_white + 1):length(x)] == 0) )
+#       tempMin <- min( which( x[(bottom_first + 1):length(x)] == 1 ) )
+#       if (tempMin > (mean(min_white) + 50)) {
+#         bottom_first <- min( which(x[(tempMin + 1):length(x)] == 0) )
+#         tempMin <- min( which( x[(bottom_first + 1):length(x)] == 1 ) )
+#         return(tempMin)
+#       }
+#       else {
+#         return(tempMin)
+#       }
+#     }
+#     else {# there aren't any ones in that row
+#       return(NA) 
+#     }
+#   })
+#   
+#   #correction for rows with no white found
+#   min_white[bad_text] <- min_white_fix
+#   possibleGaps <- which(is.na(min_white)) # picks up the 0 rows found above
+#   if (length(possibleGaps) != 0) {
+#       start <- imageSides$Start
+#       end <- imageSides$End
+#     for (i in 1:length(possibleGaps)) {
+#       compare <- possibleGaps[i]
+#       left <- min_white[compare - 1]
+#       right <- min_white[compare + 1]
+#       # first and last pixel
+#       if (compare == 0 || compare == length(min_white)) {
+#         min_white[compare] = 0
+#       }
+#       #probably in the start or end of the image before the trace
+#       else if (left != 0 || right != 0) { 
+#         sides <- c(left, right)
+#         min_white[compare] <- sides[which(sides != 0)][1] # will take the left if both aren't 0 
+#       }
+#     }
+#   }
+# }
+# #}
+  # correctedWhite <- nrow(imageWithoutTopBottom) - min_white
+  # plot(imageWithoutTopBottom)
+  # lines(y = correctedWhite, x = 1:ncol(imageWithoutTopBottom), col = "green")
+  
+```
 
