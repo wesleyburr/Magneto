@@ -10,7 +10,7 @@ j <- sample(1:26000, size = 100, replace = FALSE)
 
 for (k in 1:50) {
   i <- j[k]
-  #i <- 13506
+  i <- 1
   file_loc <- as.character(ImageTesting[i,1])
   imageName <- as.character(ImageTesting[i,2])
 
