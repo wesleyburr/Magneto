@@ -6,7 +6,7 @@ k <- 1
 j <- sample(1:26000, size = 100, replace = FALSE)
 flag = FALSE
 
-for (k in 1:10) {
+for (k in 1:2) {
 
   i <- j[k]
   print(i)
@@ -14,17 +14,19 @@ for (k in 1:10) {
   file_loc <- as.character(ImageTesting[i,1])
   imageName <- as.character(ImageTesting[i,2])
   print(imageName)
+  imageMatrix <- import_process_image(imageName = imageName, file_loc = file_loc)
+  imagecut <- .trim_top_bottom(image, trimAmountTop = 100, trimAmountBottom = 50) #takes off the usual flair spots
+  imageSides <- .get_trace_start_ends(imagecut, returnMat = FALSE, cutPercentage = 2) # two vertical lines
+  tripleBool <- .triple_check(imageMatrix = imageMatrix, threshold = 200)
+  if (isTRUE(tripleBool)) {
+    print("possible triple found!")
+    next
+  }
 
-  imageRAW <- tiff_import(fileName = imageName, fileLoc = file_loc)
-  image <- magneto::.horizontal_image_check(imageRAW)
-  imagecut <- magneto::.trim_top_bottom(image, trimAmountTop = 100, trimAmountBottom = 50) #takes off the usual flair spots
-  #imageSides <- magneto::.get_trace_start_ends(imagecut, returnMat = FALSE)
-  imageSides <- magneto::.get_trace_start_ends(imagecut, returnMat = FALSE, cutPercentage = 2) # two vertical lines
-  imageMatrix <- .process_image(imagecut) # checks bright and processes returns processed
   #imageMatrix <- edge_detection(imagecut, method = "Sobel")
   imageWithoutSides <- imageMatrix[, -c(0:imageSides$Start, imageSides$End:ncol(imageMatrix))] #takes away the sides found above
   # finds top horizontal line
-  topcut <- magneto::.top_image_cut(imageMatrix = imageWithoutSides, percentFromEdge = 2, percentEdgeForLeft = 25)
+  topcut <- .top_image_cut(imageMatrix = imageWithoutSides, percentFromEdge = 2, percentEdgeForLeft = 25)
   #finds bottom horizontal line
   bottomcut <- tryCatch(magneto::.bottom_image_cut(imageMatrix = imageWithoutSides, percentEdgeForLeft = 25,
                                                    percentFromEdge = 2, shortestAlowedSeqOfZeros = 30), warning = function(w) w)
@@ -73,7 +75,7 @@ for (k in 1:10) {
     # else {
     #   end <- imageSides$End
     # }
-    for (m in 700:4800) { #Checking for intersection between the two lines
+    for (m in 300:(min(c(length(bottomUpperEnv), length(topLowerEnv))) - 300)) { #Checking for intersection between the two lines
       if (topLowerEnv[m] <= bottomUpperEnv[m]) {
         print(warning(paste0("There is an intersection at (", topLowerEnv[m], ", ", m, ")")))
         print(imageName)
@@ -97,19 +99,6 @@ for (k in 1:10) {
     dev.off()
   }
 
-  trippleCheck <- find_peaks(rowSums(imageMatrix), minDistance = 50, maxPeakNumber = 6,
-                             percentFromEdge = 2, plots = FALSE)
-  thresh <- 250
-  if (length(trippleCheck$Index) == 6) { # possible a triple so we check weather the timing peaks are close together in heights
-    #this can be an indication that there are possibly three traces on the image
-    if (trippleCheck$Height[5] - thresh <= trippleCheck$Height[4] &
-        trippleCheck$Height[4] <= trippleCheck$Height[5] + thresh &
-        trippleCheck$Height[5] - thresh <= trippleCheck$Height[6] &
-        trippleCheck$Height[6] <= trippleCheck$Height[5] + thresh) {
-      print("possible tripple found")
-      print(imageName)
-    }
-  }
 
 
   b <- Sys.time()

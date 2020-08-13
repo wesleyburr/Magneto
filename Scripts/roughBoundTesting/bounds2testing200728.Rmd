@@ -183,3 +183,5 @@ if (is.na(bad_text[1]) == FALSE) {
 i <- i + 1
 ```
 
+
+
