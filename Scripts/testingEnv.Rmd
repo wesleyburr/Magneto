@@ -11,17 +11,18 @@ knitr::opts_chunk$set(echo = TRUE)
 ImageTesting <- read.csv("~/Magneto2020/DataCSV/TODOBatch5.csv", header = TRUE, stringsAsFactors = FALSE)
 ```
 ```{r}
-k <- 1
+k <- 4
 j <- sample(1:26000, size = 100, replace = FALSE)
 
 ```
 
 
 ```{r}
-#i <- j[k]
-i <- 1
-library(magneto)
-library("zoo")
+#for k in 1:100)
+i <- j[k]
+#i <- 1
+#library(magneto)
+#library("zoo")
   file_loc <- as.character(ImageTesting[i,1])
   imageName <- as.character(ImageTesting[i,2])
 
@@ -48,15 +49,31 @@ library("zoo")
     vert <- t(imageWithoutTopBottom)
     rolledImage <- t(rollmean(vert, k = 75, fill = "extend"))
     rolledImage[which(rolledImage != 0)] <- 1
+    
+    topEnvelope <- .top_env(rolledImage, sepDist = 20, max_roc = 75)
+    topEnvelopeScaled <- nrow(imageMatrix) - bottomcut + topEnvelope 
+    bottomEnvelope <- .bottom_env(rolledImage, sepDist = 20, max_roc = 75)
+    bottomEnvelopeScaled <- nrow(imageMatrix) - bottomcut + bottomEnvelope
+    topLowerEnv <- .top_lower_env(rolledImage, sepDist = 20, max_roc = 75)
+    topLowerEnvScaled <- nrow(imageMatrix) - bottomcut + topLowerEnv
+    bottomUpperEnv <- .bottom_upper_env(rolledImage, sepDist = 20, max_roc = 75)
+    bottomUpperEnvScaled <- nrow(imageMatrix) - bottomcut + bottomUpperEnv
+    suppressWarnings(plot(imageMatrix))#processed image
+    lines(topEnvelopeScaled, col = "green")
+    lines(bottomEnvelopeScaled, col = "yellow")
+    lines(topLowerEnvScaled, col = "green")
+    lines(bottomUpperEnvScaled, col = "yellow")
+    abline(h = (nrow(imageMatrix) - topcut), col = "red") 
+    abline(h = (nrow(imageMatrix) - bottomcut), col = "red")
+    
+    for (m in imageSides$Start:imageSides$End) {
+      if (topLowerEnv[m] == bottomUpperEnv[m]) {
+        warning(paste0("There is an intersection at (", topLowerEnv[m], ", ", m, ")"))
+        print(imageName)
+        break
+      }
+    }
   }
-  topEnvelope <- .top_env(rolledImage, sepDist = 20, max_roc = 50)
-  topEnvelopeScaled <- nrow(imageMatrix) - bottomcut + topEnvelope 
-  bottomEnvelope <- .bottom_env(rolledImage, sepDist = 20, max_roc = 50)
-  bottomEnvelopeScaled <- nrow(imageMatrix) - bottomcut + bottomEnvelope
-  plot(imageMatrix)#processed image
-  lines(topEnvelopeScaled, col = "green")
-  lines(bottomEnvelopeScaled, col = "green")
-  
 # suppressWarnings(plot(imageMatrix))
 #   abline(h = (nrow(imageMatrix) - topcut), col = "green")
 #   abline(h = (nrow(imageMatrix) - bottomcut), col = "green")
@@ -64,9 +81,69 @@ library("zoo")
 #   text(imageSides$Start, x = 800, y = 1500, col = "green")
 #   text(imageSides$End, x = 5000, y = 1500, col = "green")
 ```
-
-
 ```{r}
+.top_lower_env <- function(rolledImage, max_roc = 25, sepDist = 10){
+  max_white <- apply(rolledImage, MARGIN = 2, FUN = function(x) {
+    if (sum(x) == 0) {
+      chosenBottom <- 0
+    }
+    else {
+      minWhite <- min( which(x == 1) )
+      black <- which(x == 0)
+      chosenBottom <- min(black[which(black > minWhite)])
+    }
+    return(chosenBottom)
+  })
+
+ #starting at the middle to be safe, will work backwards after
+  foundNonZero <- FALSE
+  for (i in (round(ncol(rolledImage))/2):ncol(rolledImage)) { # need for loop because need to be able to just back an index
+    x <- max_white[i]
+    #first column or no nonZero column found yet
+    if ( i == 1 || isFALSE(foundNonZero)) {
+      if (max_white[i] != 0) {
+        foundNonZero <- TRUE
+      }
+    }
+    # a non zero column is found
+    else if (isTRUE(foundNonZero)) {
+      oneLess <- max_white[i - 1]
+      diff <- x - oneLess
+      if (abs(diff) >= max_roc) { # big change, could be a jump
+          max_white[i] <- max_white[i - 1]
+        
+      }
+    }
+  }
+
+  # The reverse, the first half of the image
+  foundNonZero <- FALSE
+  for (j in 1:(round(ncol(rolledImage))/2 )) { # need for loop because need to be able to just back an index
+    i <- (round(ncol(rolledImage))/2 + 1) - j
+    x <- max_white[i]
+    #first column or no nonZero column found yet
+    if ( j == 1 || isFALSE(foundNonZero)) {
+      if (max_white[i] != 0) {
+        foundNonZero <- TRUE
+      }
+    }
+    # a non zero column is found
+    else if (isTRUE(foundNonZero)) {
+      oneLess <- max_white[i + 1] # actually more because reverse indexing
+      diff <-  oneLess - x # remember that the picture is reversed aswell, 0 is the top..
+      if (abs(diff) >= max_roc) { # big change, could be a jump
+          max_white[i] <- max_white[i + 1]
+      }
+    }
+  }
+  correctedWhite <- nrow(rolledImage) - max_white - sepDist # because image is actually flipped with respect to the matrix
+  return(correctedWhite)
+}
+
+```
+
+
+```{r Trash}
 #.bottom_env <- function(rolledImage, max_roc = 10, sepDist = 10){
 max_roc = 10
 sepDist = 10
@@ -142,6 +219,56 @@ lines(y = correctedWhite, x = 1:ncol(imageWithoutTopBottom), col = "green")
 
 
 
+```{r}
+.envelope_creation <- function(rolledImage, chosenRoughBound, max_roc = 25, topOfLine = TRUE){
+  foundNonZero <- FALSE
+  #second half of image
+  for (i in (round(ncol(rolledImage))/2):ncol(rolledImage)) {
+    x <- chosenRoughBound[i]
+    #first column or no nonZero column found yet
+    if ( i == 1 || isFALSE(foundNonZero)) {
+      if (chosenRoughBound[i] != 0) {
+        foundNonZero <- TRUE
+      }
+    }
+    # a non zero column is found
+    else if (isTRUE(foundNonZero)) {
+      oneLess <- chosenRoughBound[i - 1]
+      diff <- x - oneLess
+      if (abs(diff) >= max_roc) { # big change, could be a jump
+        chosenRoughBound[i] <- chosenRoughBound[i - 1]
+      }
+    }
+  }
+  foundNonZero <- FALSE
+  #first half of image
+  for (j in 1:(round(ncol(rolledImage))/2 )) { 
+    i <- (round(ncol(rolledImage))/2 + 1) - j
+    x <- chosenRoughBound[i]
+    #first column or no nonZero column found yet
+    if ( j == 1 || isFALSE(foundNonZero)) {
+      if (chosenRoughBound[i] != 0) {
+        foundNonZero <- TRUE
+      }
+    }
+    # a non zero column is found
+    else if (isTRUE(foundNonZero)) {
+      oneLess <- chosenRoughBound[i + 1] # actually more because reverse indexing
+      diff <-  oneLess - x # remember that the picture is reversed as well, 0 is the top..
+      if (abs(diff) >= max_roc) { # big change, could be a jump
+          chosenRoughBound[i] <- chosenRoughBound[i + 1]
+      }
+    }
+  }
+  if (isTRUE(topOfLine)) {
+    correctedWhite <- nrow(rolledImage) - max_white + sepDist
+  }
+  else{ #running on the bottom of the image
+    correctedWhite <- nrow(rolledImage) - max_white - sepDist
+  }
+  return(correctedWhite)
+}
+```
 
 
 
@@ -171,128 +298,4 @@ startEnd <- data.frame(start = start, end = end)
 ```
 
 
-
-```{r}
-# max_roc <- 20
-# 
-# min_white <- apply(rolledImage, MARGIN = 2, FUN = function(x) {
-#    if (sum(x) == 0) {
-#      white <- 0
-#    } 
-#    else {
-#    white <- min( which(x == 1) )
-#    }
-#   return(white)
-#   })
-# #starting at the middle to be safe, will work backwords after
-# foundNonZero <- FALSE
-# for (i in (round(ncol(rolledImage))/2):ncol(rolledImage)) { # need for loop because need to be able to just back an index
-#   x <- min_white[i]
-#   #first column or no nonZero column found yet
-#   if ( i == 1 || isFALSE(foundNonZero)) {
-#     if (min_white[i] != 0) {
-#       foundNonZero <- TRUE
-#    }
-#   }
-#   # a non zero column is found
-#   else if (isTRUE(foundNonZero)) {
-#     oneLess <- min_white[i - 1]
-#     diff <- x - oneLess
-#     if (diff >= max_roc) { # big change, could be a jump
-#       if (diff > 0) { # new point is higher then old point
-#         min_white[i] <- min_white[i - 1] + 2 # 2 added to be safe
-#       }
-#       if (diff < 0) { # new point is below old point, cold be a timing gap
-#         min_white[i] <- min_white[i - 1] - 2 # 2 subtracted to be safe
-#       }
-#     }  
-#   }
-# } 
-# 
-# # The reverse, the first half of the image
-#   foundNonZero <- FALSE
-# for (j in 1:(round(ncol(rolledImage))/2)) { # need for loop because need to be able to just back an index
-#   i <- (round(ncol(rolledImage))/2 + 1) - j
-#   x <- min_white[i]
-#   #first column or no nonZero column found yet
-#   if ( j == 1 || isFALSE(foundNonZero)) {
-#     if (min_white[i] != 0) {
-#       foundNonZero <- TRUE
-#    }
-#   }
-#   # a non zero column is found
-#   else if (isTRUE(foundNonZero)) {
-#     oneLess <- min_white[i + 1] # actually more because reverse indexing
-#     diff <-  oneLess - x
-#     if (diff >= max_roc) { # big change, could be a jump
-#       if (diff > 0) { # new point is higher then old point
-#         min_white[i] <- min_white[i + 1] - 2 # 2 added to be safe
-#       }
-#       if (diff < 0) { # new point is below old point, cold be a timing gap
-#         min_white[i] <- min_white[i + 1] + 2 # 2 subtracted to be safe
-#       }
-#     }  
-#   }
-# }
-# 
-# correctedWhite <- nrow(imageWithoutTopBottom) - min_white
-# plot(imageWithoutTopBottom)
-# lines(y = correctedWhite, x = 1:ncol(imageWithoutTopBottom), col = "green")
-  
-  # Some are text and artifacts
-# d_e <- diff(min_white)
-# bad_text <- which(abs(d_e) >= max_roc)
-# if ((length(bad_text) %% 2) == 0) { # even
-#   bad_text
-# }
-# if (is.na(bad_text[1]) == FALSE) {
-#   # Instead, jump to other side of these ... then find the first white going down
-#   min_white_fix <- apply(rolledImage[, bad_text], MARGIN = 2, FUN = function(x) {
-#     ones <- which(x == 1)
-#     if (length(ones) != 0) { # there is a one in that row
-#       first_white <- min( ones )
-#       bottom_first <- min( which(x[(first_white + 1):length(x)] == 0) )
-#       tempMin <- min( which( x[(bottom_first + 1):length(x)] == 1 ) )
-#       if (tempMin > (mean(min_white) + 50)) {
-#         bottom_first <- min( which(x[(tempMin + 1):length(x)] == 0) )
-#         tempMin <- min( which( x[(bottom_first + 1):length(x)] == 1 ) )
-#         return(tempMin)
-#       }
-#       else {
-#         return(tempMin)
-#       }
-#     }
-#     else {# there aren't any ones in that row
-#       return(NA) 
-#     }
-#   })
-#   
-#   #correction for rows with no white found
-#   min_white[bad_text] <- min_white_fix
-#   possibleGaps <- which(is.na(min_white)) # picks up the 0 rows found above
-#   if (length(possibleGaps) != 0) {
-#       start <- imageSides$Start
-#       end <- imageSides$End
-#     for (i in 1:length(possibleGaps)) {
-#       compare <- possibleGaps[i]
-#       left <- min_white[compare - 1]
-#       right <- min_white[compare + 1]
-#       # first and last pixel
-#       if (compare == 0 || compare == length(min_white)) {
-#         min_white[compare] = 0
-#       }
-#       #probably in the start or end of the image before the trace
-#       else if (left != 0 || right != 0) { 
-#         sides <- c(left, right)
-#         min_white[compare] <- sides[which(sides != 0)][1] # will take the left if both aren't 0 
-#       }
-#     }
-#   }
-# }
-# #}
-  # correctedWhite <- nrow(imageWithoutTopBottom) - min_white
-  # plot(imageWithoutTopBottom)
-  # lines(y = correctedWhite, x = 1:ncol(imageWithoutTopBottom), col = "green")
-  
-```
 

@@ -1,121 +1,130 @@
 library("magneto")
+library("zoo")
+library("rtiff")
 ImageTesting <- read.csv("~/Magneto2020/DataCSV/TODOBatch5.csv", header = TRUE, stringsAsFactors = FALSE)
-# k <- 1
-# j <- sample(1:26000, size = 100, replace = FALSE)
-#
-#
-# for (k in 1:100) {
-#
-#   i <- j[k]
-#   file_loc <- as.character(ImageTesting[i,1])
-#   imageName <- as.character(ImageTesting[i,2])
-#
-#   imageRAW <- tiff_import(fileName = imageName, fileLoc = file_loc)
-#   image <- magneto::.horizontal_image_check(imageRAW)
-#   imagecut <- magneto::.trim_top_bottom(image, trimAmountTop = 100, trimAmountBottom = 50)
-#   imageSides <- magneto::.get_trace_start_ends(imagecut, returnMat = FALSE, cutPercentage = 2)
-#   imageProcessed <- magneto::.process_image(imagecut, cutoffQuantile = 0.90, cutoffProbability = 0.4)
-#   imageMatrix <- imageProcessed$gaussImageMatrix
-#   imageWithoutSides <- imageMatrix[, -c(0:imageSides$Start, imageSides$End:ncol(imageMatrix))]
-#   topcut <- magneto::.top_image_cut(imageMatrix = imageWithoutSides, percentFromEdge = 2, percentEdgeForLeft = 25)
-#   bottomcut <- tryCatch(magneto::.bottom_image_cut(imageMatrix = imageWithoutSides, percentEdgeForLeft = 25,
-#                                                    percentFromEdge = 2, shortestAlowedSeqOfZeros = 15), warning = function(w) w)
-#   if (inherits(bottomcut, "warning")) {
-#     print(bottomcut)
-#     print(imageName)
-#     bottomcut <- ncol(imageMatrix) # this is the only way I know of doing this
-#   }
-#   imageMatrixTopCut <- imageMatrix[-c(0:topcut),]
-#
-#
-#
-#
-#
-#
-#   # Open a pdf file
-#   png(paste0("~/Magneto2020/plottingTesting/", imageName, ".png"))
-#   # 2. Create a plot
-#   suppressWarnings(plot(imageMatrix))
-#   abline(h = (nrow(imageMatrix) - topcut), col = "green")
-#   abline(h = (nrow(imageMatrix) - bottomcut), col = "green")
-#   abline(v = c(imageSides$Start, imageSides$End), col = "green")
-#   text(imageSides$Start, x = 800, y = 1500, col = "green")
-#   text(imageSides$End, x = 5000, y = 1500, col = "green")
-#   # Close the pdf file
-#   dev.off()
-# }
+k <- 1
+j <- sample(1:26000, size = 100, replace = FALSE)
+flag = FALSE
 
-topBound <- .top_env(rolledImage, max_roc = 25)
+for (k in 1:10) {
+
+  i <- j[k]
+  print(i)
+  a <- Sys.time()
+  file_loc <- as.character(ImageTesting[i,1])
+  imageName <- as.character(ImageTesting[i,2])
+  print(imageName)
+
+  imageRAW <- tiff_import(fileName = imageName, fileLoc = file_loc)
+  image <- magneto::.horizontal_image_check(imageRAW)
+  imagecut <- magneto::.trim_top_bottom(image, trimAmountTop = 100, trimAmountBottom = 50) #takes off the usual flair spots
+  #imageSides <- magneto::.get_trace_start_ends(imagecut, returnMat = FALSE)
+  imageSides <- magneto::.get_trace_start_ends(imagecut, returnMat = FALSE, cutPercentage = 2) # two vertical lines
+  imageMatrix <- .process_image(imagecut) # checks bright and processes returns processed
+  #imageMatrix <- edge_detection(imagecut, method = "Sobel")
+  imageWithoutSides <- imageMatrix[, -c(0:imageSides$Start, imageSides$End:ncol(imageMatrix))] #takes away the sides found above
+  # finds top horizontal line
+  topcut <- magneto::.top_image_cut(imageMatrix = imageWithoutSides, percentFromEdge = 2, percentEdgeForLeft = 25)
+  #finds bottom horizontal line
+  bottomcut <- tryCatch(magneto::.bottom_image_cut(imageMatrix = imageWithoutSides, percentEdgeForLeft = 25,
+                                                   percentFromEdge = 2, shortestAlowedSeqOfZeros = 30), warning = function(w) w)
+
+  #could be that no cut was found, both of those functions throw an error when this happens
+  if (inherits(topcut, "warning") || inherits(bottomcut, "warning")) {
+    print(bottomcut)
+    print(imageName)
+    flag = TRUE
+    bottomcut <- nrow(imageMatrix) # this is the only way I know of doing this
+  }
+  #No warnings, then we can roll mean the image and work on the bounds
+  else {#if (bottomcut != nrow(imageMatrix) & !inherits(topcut, "warning")) {
+    imageWithoutTopBottom <- imageMatrix[-c(0:topcut, bottomcut:nrow(image)), ]
+    vert <- t(imageWithoutTopBottom)
+    rolledImage <- t(rollmean(vert, k = 40, fill = "extend"))
+    rolledImage[which(rolledImage != 0)] <- 1
+
+    #the envelopes
+    topEnvelope <- .top_env(rolledImage, sepDist = 10, max_roc = 50, maxNoise = 100)
+    topEnvelopeScaled <- nrow(imageMatrix) - bottomcut + topEnvelope
+    bottomEnvelope <- .bottom_env(rolledImage, sepDist = 10, max_roc = 50, maxNoise = 100)
+    bottomEnvelopeScaled <- nrow(imageMatrix) - bottomcut + bottomEnvelope
+    topLowerEnv <- .top_lower_env(rolledImage, sepDist = 10, max_roc = 50, maxNoise = 100)
+    topLowerEnvScaled <- nrow(imageMatrix) - bottomcut + topLowerEnv
+    bottomUpperEnv <- .bottom_upper_env(rolledImage, sepDist = 10, max_roc = 50, maxNoise = 100)
+    bottomUpperEnvScaled <- nrow(imageMatrix) - bottomcut + bottomUpperEnv
 
 
+     # Open a png file
+    png(paste0("~/Magneto2020/plottingTesting/", imageName, ".png"))
+    # 2. Create a plot
+    suppressWarnings(plot(imageMatrix))
+    lines(topEnvelopeScaled, col = "green")
+    lines(bottomEnvelopeScaled, col = "yellow")
+    lines(topLowerEnvScaled, col = "green")
+    lines(bottomUpperEnvScaled, col = "yellow")
+    abline(h = (nrow(imageMatrix) - topcut), col = "red")
+    abline(h = (nrow(imageMatrix) - bottomcut), col = "red")
+    # Close the pdf file
+    dev.off()
 
-.bottom_env <- function(rolledImage, max_roc = 25, sepDist = 10){
-  max_white <- apply(rolledImage, MARGIN = 2, FUN = function(x) {
-    if (sum(x) == 0) {
-      white <- 0
-    }
-    else {
-      white <- max( which(x == 1) )
-    }
-    return(white)
-  })
-
-  #starting at the middle to be safe, will work backwards after
-  foundNonZero <- FALSE
-  for (i in (round(ncol(rolledImage))/2):ncol(rolledImage)) { # need for loop because need to be able to just back an index
-    x <- max_white[i]
-    #first column or no nonZero column found yet
-    if ( i == 1 || isFALSE(foundNonZero)) {
-      if (max_white[i] != 0) {
-        foundNonZero <- TRUE
-      }
-    }
-    # a non zero column is found
-    else if (isTRUE(foundNonZero)) {
-      oneLess <- max_white[i - 1]
-      diff <- x - oneLess
-      if (abs(diff) >= max_roc) { # big change, could be a jump
-        if (diff > 0) { # new point is higher then old point
-          max_white[i] <- max_white[i - 1]
-        }
-        if (diff < 0) { # new point is below old point, cold be a timing gap
-          max_white[i] <- max_white[i - 1]
-        }
+    # if (imageSides$End >=  length(topLowerEnv)) {
+    #   end <- length(topLowerEnv - 200) # 200 to keep away from the sides
+    # }
+    # else {
+    #   end <- imageSides$End
+    # }
+    for (m in 700:4800) { #Checking for intersection between the two lines
+      if (topLowerEnv[m] <= bottomUpperEnv[m]) {
+        print(warning(paste0("There is an intersection at (", topLowerEnv[m], ", ", m, ")")))
+        print(imageName)
+        break
       }
     }
   }
+  if (isTRUE(flag)) { # plotting so I can see whats wrong
+    flag = FALSE
+    # Open a pdf file
+    png(paste0("~/Magneto2020/plottingTesting/", imageName, "failProcess", ".png"))
+    # 2. Create a plot
+    suppressWarnings(plot(imageMatrix))
+    abline(h = (nrow(imageMatrix) - topcut), col = "green")
+    abline(h = (nrow(imageMatrix) - bottomcut), col = "green")
+    abline(v = c(imageSides$Start, imageSides$End), col = "green")
+    text(imageSides$Start, x = 800, y = 1500, col = "green")
+    text(imageSides$End, x = 5000, y = 1500, col = "green")
+    text("This Isn't Processed", x = 3000, y = 1500, col = "orange")
+    # Close the pdf file
+    dev.off()
+  }
 
-  # The reverse, the first half of the image
-  foundNonZero <- FALSE
-  for (j in 1:(round(ncol(rolledImage))/2 )) { # need for loop because need to be able to just back an index
-    i <- (round(ncol(rolledImage))/2 + 1) - j
-    x <- max_white[i]
-    #first column or no nonZero column found yet
-    if ( j == 1 || isFALSE(foundNonZero)) {
-      if (max_white[i] != 0) {
-        foundNonZero <- TRUE
-      }
-    }
-    # a non zero column is found
-    else if (isTRUE(foundNonZero)) {
-      oneLess <- max_white[i + 1] # actually more because reverse indexing
-      diff <-  oneLess - x # remember that the picture is reversed aswell, 0 is the top..
-      if (abs(diff) >= max_roc) { # big change, could be a jump
-        #browser()
-        if (diff > 0) { # new point is higher then old point (looking at the image)
-          max_white[i] <- max_white[i + 1]
-        }
-        if (diff < 0) { # new point is below old point, could be a timing gap (lookug at the image)
-          max_white[i] <- max_white[i + 1]
-        }
-      }
+  trippleCheck <- find_peaks(rowSums(imageMatrix), minDistance = 50, maxPeakNumber = 6,
+                             percentFromEdge = 2, plots = FALSE)
+  thresh <- 250
+  if (length(trippleCheck$Index) == 6) { # possible a triple so we check weather the timing peaks are close together in heights
+    #this can be an indication that there are possibly three traces on the image
+    if (trippleCheck$Height[5] - thresh <= trippleCheck$Height[4] &
+        trippleCheck$Height[4] <= trippleCheck$Height[5] + thresh &
+        trippleCheck$Height[5] - thresh <= trippleCheck$Height[6] &
+        trippleCheck$Height[6] <= trippleCheck$Height[5] + thresh) {
+      print("possible tripple found")
+      print(imageName)
     }
   }
-  correctedWhite <- nrow(rolledImage) - max_white + sepDist # because image is actually flipped with respect to the matrix
-  return(correctedWhite)
+
+
+  b <- Sys.time()
+  print( b - a)
+  print(" ")
+  # # Open a pdf file
+  # png(paste0("~/Magneto2020/plottingTesting/", imageName, ".png"))
+  # # 2. Create a plot
+  # suppressWarnings(plot(imageMatrix))
+  # abline(h = (nrow(imageMatrix) - topcut), col = "green")
+  # abline(h = (nrow(imageMatrix) - bottomcut), col = "green")
+  # abline(v = c(imageSides$Start, imageSides$End), col = "green")
+  # text(imageSides$Start, x = 800, y = 1500, col = "green")
+  # text(imageSides$End, x = 5000, y = 1500, col = "green")
+  # # Close the pdf file
+  # dev.off()
 }
-
-plot(rolledImage)
-lines(y = correctedWhite, x = 1:ncol(imageWithoutTopBottom), col = "green")
-lines(y = topBound, x = 1:ncol(imageWithoutTopBottom), col = "green")
 
