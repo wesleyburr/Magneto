@@ -429,12 +429,38 @@ for (k in 1:2) {
 
 
 ```{r}
-for (i in 1:ncol(imageMatrix)) {
-  for (i in 1)
-  if (imageMatrix[i] < topEnvelopeScaled[i]) # this iwsnt done
+#getting just the top trace (assuming no intersection)
+topTraceMatrix <- imageMatrix
+
+for (j in 1:ncol(topTraceMatrix)) {
+  for (i in 1:nrow(topTraceMatrix)) {
+    if (topTraceMatrix[i,j] > topEnvelopeScaled[i]) {
+      topTraceMatrix[i,j] <- 0
+      next
+    }
+    if (topTraceMatrix[i,j] < topLowerEnvScaled[i]) {
+      topTraceMatrix[i,j] <- 0
+      next
+    }
+  }
 }
 ```
+```{r}
+topTraceMatrix <- apply(imageMatrix, MARGIN = 2, FUN = function(x){
+  for (i in 1:length(x)) {
+    if (x[i] > topEnvelopeScaled[i]) {
+      x[i] <- 0
+      #next
+    }
+    if (x[i] < topLowerEnvScaled[i]) {
+      x[i] <- 0
+      #next
+    }
+  }
+})
+```
 
-Need to duble for loop to make all other parts black, then we can draw a line between the two lines, up or down resp
+
+Need to double for loop to make all other parts black, then we can draw a line between the two lines, up or down resp
 with this we should have two seperated traces that will be easy to get the final bounds, because there will be a clear
 part where the trace gaps to be the number at the end of the trace!
