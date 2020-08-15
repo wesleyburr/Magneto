@@ -3,10 +3,32 @@ library("zoo")
 library("rtiff")
 ImageTesting <- read.csv("~/Magneto2020/DataCSV/TODOBatch5.csv", header = TRUE, stringsAsFactors = FALSE)
 k <- 1
+set.seed(1)
 j <- sample(1:26000, size = 100, replace = FALSE)
 flag = FALSE
+#This doesnt work, scrap ...
+# .envelope_collapse_check <- function(upperTrace, lowerTrace, percentFromEdge = 2, maxCounts = 50){
+#   counter <- 0
+#   possibleCollapse <- vector()
+#   # checking for collapse in the envelope
+#   browser()
+#   for (i in 2:(min(c(length(upperTrace), length(lowerTrace))))) { # starts at 2 becuase 1st is accounted for with indexing
+#     if (counter == maxCounts) {
+#       possibleCollapse <- append(possibleCollapse, i)
+#       counter <- 0
+#     }
+#     else if (upperTrace[i] == upperTrace[i - 1] &
+#              lowerTrace[i] == lowerTrace[i - 1]) {
+#       counter <- counter + 1
+#     }
+#     else {
+#       counter <- 0
+#     }
+#   }
+#   return(possibleCollapse) # all the times this happens
+# }
 
-for (k in 1:2) {
+for (k in 1:5) {
 
   i <- j[k]
   print(i)
@@ -15,9 +37,9 @@ for (k in 1:2) {
   imageName <- as.character(ImageTesting[i,2])
   print(imageName)
   imageMatrix <- import_process_image(imageName = imageName, file_loc = file_loc)
-  imagecut <- .trim_top_bottom(image, trimAmountTop = 100, trimAmountBottom = 50) #takes off the usual flair spots
+  imagecut <- .trim_top_bottom(imageMatrix, trimAmountTop = 100, trimAmountBottom = 50) #takes off the usual flair spots
   imageSides <- .get_trace_start_ends(imagecut, returnMat = FALSE, cutPercentage = 2) # two vertical lines
-  tripleBool <- .triple_check(imageMatrix = imageMatrix, threshold = 200)
+  tripleBool <- .triple_check(imageMatrix = imageMatrix)
   if (isTRUE(tripleBool)) {
     print("possible triple found!")
     next
@@ -29,7 +51,7 @@ for (k in 1:2) {
   topcut <- .top_image_cut(imageMatrix = imageWithoutSides, percentFromEdge = 2, percentEdgeForLeft = 25)
   #finds bottom horizontal line
   bottomcut <- tryCatch(magneto::.bottom_image_cut(imageMatrix = imageWithoutSides, percentEdgeForLeft = 25,
-                                                   percentFromEdge = 2, shortestAlowedSeqOfZeros = 30), warning = function(w) w)
+                                                   percentFromEdge = 2, shortestAlowedSeqOfZeros = 25), warning = function(w) w)
 
   #could be that no cut was found, both of those functions throw an error when this happens
   if (inherits(topcut, "warning") || inherits(bottomcut, "warning")) {
@@ -40,7 +62,8 @@ for (k in 1:2) {
   }
   #No warnings, then we can roll mean the image and work on the bounds
   else {#if (bottomcut != nrow(imageMatrix) & !inherits(topcut, "warning")) {
-    imageWithoutTopBottom <- imageMatrix[-c(0:topcut, bottomcut:nrow(image)), ]
+
+   imageWithoutTopBottom <- imageMatrix[-c(0:topcut, bottomcut:nrow(image)), ]
     vert <- t(imageWithoutTopBottom)
     rolledImage <- t(rollmean(vert, k = 40, fill = "extend"))
     rolledImage[which(rolledImage != 0)] <- 1
@@ -55,7 +78,18 @@ for (k in 1:2) {
     bottomUpperEnv <- .bottom_upper_env(rolledImage, sepDist = 10, max_roc = 50, maxNoise = 100)
     bottomUpperEnvScaled <- nrow(imageMatrix) - bottomcut + bottomUpperEnv
 
-
+    browser()
+    possibleColTop <- .envelope_collapse_check(topEnvelope, topLowerEnv)
+    possibleColBottom <- .envelope_collapse_check(bottomUpperEnv, bottomEnvelope)
+    possibleColTopScaled <- nrow(imageMatrix) - bottomcut + possibleColTop
+    possibleColBottomScaled <- nrow(imageMatrix) - bottomcut + possibleColBottom
+    browser()
+    if (length(possibleColBottom) == 0) {
+      possibleColBottom <- 1
+    }
+    if (length(possibleColTop) == 0) {
+      possibleColTop <- 1
+    }
      # Open a png file
     png(paste0("~/Magneto2020/plottingTesting/", imageName, ".png"))
     # 2. Create a plot
@@ -66,6 +100,8 @@ for (k in 1:2) {
     lines(bottomUpperEnvScaled, col = "yellow")
     abline(h = (nrow(imageMatrix) - topcut), col = "red")
     abline(h = (nrow(imageMatrix) - bottomcut), col = "red")
+    abline(h = possibleColTop, col = "green")
+    abline(h = possibleColBottom, col = "orange")
     # Close the pdf file
     dev.off()
 

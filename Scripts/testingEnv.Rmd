@@ -317,17 +317,14 @@ for (k in 1:2) {
   imageName <- as.character(ImageTesting[i,2])
   print(imageName)
   imageMatrix <- import_process_image(imageName = imageName, file_loc = file_loc)
-  imagecut <- .trim_top_bottom(image, trimAmountTop = 100, trimAmountBottom = 50) #takes off the usual flair spots
-  
-  
-  
-  
-  imageSides <- .get_trace_start_ends(imagecut, returnMat = FALSE, cutPercentage = 2) # two vertical lines
-  tripleBool <- .triple_check(imageMatrix = imageMatrix, threshold = 200)
+  imagecut <- .trim_top_bottom(imageMatrix, trimAmountTop = 100, trimAmountBottom = 50) #takes off the usual flair spots
+  imageSides <- .get_trace_start_ends(imagecut, returnMat = FALSE, cutPercentage = 2) # two vertical lines (est for the bounds)
+  tripleBool <- .triple_check(imageMatrix = imageMatrix)
   if (isTRUE(tripleBool)) {
     print("possible triple found!")
     next
   }
+  #This is where we should do the sep of the timing marks
 
   #imageMatrix <- edge_detection(imagecut, method = "Sobel")
   imageWithoutSides <- imageMatrix[, -c(0:imageSides$Start, imageSides$End:ncol(imageMatrix))] #takes away the sides found above
@@ -335,8 +332,7 @@ for (k in 1:2) {
   topcut <- .top_image_cut(imageMatrix = imageWithoutSides, percentFromEdge = 2, percentEdgeForLeft = 25)
   #finds bottom horizontal line
   bottomcut <- tryCatch(magneto::.bottom_image_cut(imageMatrix = imageWithoutSides, percentEdgeForLeft = 25,
-                                                   percentFromEdge = 2, shortestAlowedSeqOfZeros = 30), warning = function(w) w)
-
+                                                   percentFromEdge = 2, shortestAlowedSeqOfZeros = 25), warning = function(w) w)
   #could be that no cut was found, both of those functions throw an error when this happens
   if (inherits(topcut, "warning") || inherits(bottomcut, "warning")) {
     print(bottomcut)
@@ -346,6 +342,12 @@ for (k in 1:2) {
   }
   #No warnings, then we can roll mean the image and work on the bounds
   else {#if (bottomcut != nrow(imageMatrix) & !inherits(topcut, "warning")) {
+    imageTimings <- imageMatrix[-c(0:bottomcut),]
+    Timings <- find_peaks(rowSums(imageTimings), minDistance = 50, maxPeakNumber = 2, percentFromEdge = 2, plots = FALSE)
+    
+    
+    
+    
     imageWithoutTopBottom <- imageMatrix[-c(0:topcut, bottomcut:nrow(image)), ]
     vert <- t(imageWithoutTopBottom)
     rolledImage <- t(rollmean(vert, k = 40, fill = "extend"))
@@ -424,3 +426,15 @@ for (k in 1:2) {
 }
 ```
 
+
+
+```{r}
+for (i in 1:ncol(imageMatrix)) {
+  for (i in 1)
+  if (imageMatrix[i] < topEnvelopeScaled[i]) # this iwsnt done
+}
+```
+
+Need to duble for loop to make all other parts black, then we can draw a line between the two lines, up or down resp
+with this we should have two seperated traces that will be easy to get the final bounds, because there will be a clear
+part where the trace gaps to be the number at the end of the trace!
