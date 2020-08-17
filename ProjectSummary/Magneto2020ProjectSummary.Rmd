@@ -13,7 +13,7 @@ library("knitr")
 
 ## DigitizationTODO.py 
 
-The need for a program that told us what images had been digitized by previous versions became apparent, as it wouldn't be possible to re-digitize all of the images when the program was stopped.  This was easiest to run in python because of its efficient computing capability.  It asks the user for two .txt files *Figure: DigTODO1*; These files contain the path of one item, in our case these were the paths of the origional image and the path of the digitized image.
+The need for a program that told us what images had been digitized by previous versions became apparent, as it wouldn't be possible to re-digitize all of the images every time the program was stopped.  This was easiest to run in python because of its efficient computing capability.  It asks the user for two .txt files *Figure: DigTODO1*; These files contain the path of one item, in our case these were the paths of the original image and the path of the digitized image.
 
 
 
@@ -47,7 +47,7 @@ This aloud us to only compare the file names of images and digitized images, wit
 
 
 
-As the comparisons happen in the function, They are recorded and outputed to a .csv file that gets saved locally. Example of the output *Figure: DigTODO2*.  In order of the columns, it saves:  **Image Path, Image Name, If the image has been digitized, Digitized Path, Digitized Name**.  Along with this .csv, there is also information that is printed to the user about the data *Figure: DigTODO3*;  This includes information to ensure that all of the files are accounted for in the final document, along with the number of digitized images and the number of images that still need to be digitized.
+As the comparisons happen in the function, They are recorded and outputted to a .csv file that gets saved locally. Example of the output *Figure: DigTODO2*.  In order of the columns, it saves:  **Image Path, Image Name, If the image has been digitized, Digitized Path, Digitized Name**.  Along with this .csv, there is also information that is printed to the user about the data *Figure: DigTODO3*;  This includes information to ensure that all of the files are accounted for in the final document, along with the number of digitized images and the number of images that still need to be digitized.
 
 
 ```{r, out.width = '95%', echo = FALSE, fig.cap="DigTODO1: The user input"}
@@ -73,11 +73,11 @@ One problem that was created when making this function was the handling of un-fo
 
 ### Using Grep with Symlinks
 
-Symbolic links, or Symlinks, are pointers to another directory on another system for example.  This became prevalent when using the magneto directory on the Trent server; I had access to it, but because it is a Symlink, to search that directory we had to first find all of the pointers/Symlinks then look recursively into all of those specific directory's separately.
+Symbolic links, or Symlinks, are pointers to another directory on another system.  This became prevalent when using the magneto directory on the Trent server; I had access to it, but because it is a Symlink, to search that directory we had to first find all of the pointers/Symlinks then look recursively into all of those specific directory's separately. Joining these found images with the others after.
 
 ### Exeption handeling
 
-Even with the symlinks working, there was still a problem with the chance of a directory being un-accessable by that specific user.  This problem came when looking through the symlink directory for magneto *Figure: FindingDays1*.  As this directory was a hidden directory that no one has access to, the handling had to be completed in such a way that the program would still complete, and just print a warning to the screen notifying the user that there was such a directory in the search radius.
+Even with the symlinks working, there was still a problem with the chance of a directory being un-accessible by that specific user.  This problem came when looking through the symlink directory for magneto *Figure: FindingDays1*.  As this directory was a hidden directory that no one has access to, the handling had to be completed in such a way that the program would still complete, and just print a warning to the screen notifying the user that there was such a directory in the search radius.
 
 
 This keyword searcher was implemented into the **AutomationScript**; It allows users to digitize only specific images or specific ranges of images based off of the **DigitizationTODO** csv.  The user only needs to know the keyword and the function will find anything in the specified or non specified searching radius.
@@ -89,7 +89,7 @@ knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/permissio
 
 ## Finding Image Gaps
 
-The long term goal for the magneto project is to obtain a continuous time series of all the data, in order to ensure that we had all of the images for each day a python program was written. 
+The long term goal for the magneto project is to obtain a continuous time series of all the data, in order to ensure that we had all of the images for each day, a python program was written. 
 
 The first thing that needed to happen was to split the names from our file system.  Using part of the algorithm created for the DigitizationTODO function, we were able to split the names into key parts; For example, AGC-D-19031103-19031105.tif, was split into these key parts:
 
@@ -116,7 +116,7 @@ Now starting at the first element in a row, each End Date was compared to the ne
 
 ## Brightness Testing
 
-A future goal put up by Mark Weygang in his masters thesis was to determine a way of automating the brightness part of TIS.  Currently the user would have to manually set if an image we were digitizing was bright **Figure: Bright1** or could be considered to be okay/not bright **Figure: Bright2**
+A future goal put up by Mark Weygang in his masters thesis on digitizing of magnetograms was to determine a way of automating the brightness part of TIS (Trace Identification Through Seporation).  Currently the user would have to manually set if an image we were digitizing was bright **Figure: Bright1** or could be considered to be okay/not bright **Figure: Bright2**
 
 ```{r, out.width = '95%', echo = FALSE, fig.cap="Bright1: Considered to be bright"}
 knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/brightImage.png")
@@ -130,14 +130,154 @@ The first thing that needed to happen was to establish a baseline for what could
 
 * Is the image border over exposed
 * Is the traces lost because of whiteness
-* Is there an over exposed part to the picture.
+* Is there an over exposed part to the picture. This could be a section that is just unreadable
 
 If two or more of these were true, we answered yes to the image being bright.  
 Once this vector was established, there was a need to find a way of predicting the outcome;  A logistic regression model was used for this, as it gave us the probability of the image being bright.  The response(our decisions about the 392 images) was modeled by: 
 $$
- \frac{\text{The pixels in the image above 0.8}}{\text{Total number of pixels}}
+ \text{Standard} = \frac{\text{The pixels in the image above 80th percentile}}{\text{Total number of pixels}}
 $$
 ```{r, out.width = '95%', echo = FALSE, fig.cap="Bright3: Regression Summary"}
 knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/LogisticRegression.png")
 ```
-See **Figure: Bright3** for the results from the regression model. As one can see we have a significant p value for the slope of model aswell as passing the assumptions of the linear model
+See **Figure: Bright3** for the results from the regression model. As one can see we have a significant p value for the slope, a calculated Mcfadden Psudo $R^2$ of 0.25733, as well as passing the assumptions of the model. The final equation that was used in the prediction of brightness function was,
+
+$$
+\text{Bright Decision} = \frac{e^{-2.7743 + 51.9169*Standard}}{(1+e^{-2.7743 + 51.9169*Standard})}
+$$
+
+
+
+## Finding Peaks
+
+In the original TIS function done by Mark Weygang, to find a rough Idea of where the traces are, we were using a finding peaks function, that was part of the pracema R package.  As the development of an improved version of TIS was our end goal, we looked into alternatives for this function, that would be more accurate on a larger proportion of images.
+
+```{r, out.width = '95%', echo = FALSE, fig.cap="FindingPeaks1 Wrong Peaks Found (old alg)"}
+knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/oldFindPeaks.png")
+```
+
+
+Looking at **Figure: FindingPeaks1**, it can be seen that although the algorithm did find 4 peaks, They aren't the peaks that would correspond to the two traces and their respective timing marks.  Testing consecutive images, it was found that too many of these types of errors were happening.  The problem was, this was the best peaks function that was available in R.  As more research was done, python had a finding peaks function part of the scipy package called (signal.find_peaks); AFter testing this function on a set of images, including those images that would error in the other function, it was determined that this peaks function was a more efficient and less error prone for our type of use.  See **Figure: FindingPeaks2** for the new peak finding results.
+
+```{r, out.width = '95%', echo = FALSE, fig.cap="FindingPeaks2 New Peaks Function"}
+knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/newFindPeaks.png")
+```
+
+***
+
+### The Reticulate R Package
+
+The reticuate R package, is a rather new package, and gives programmers in the R language the ability to implement python code, packages, and even create functions in R that are in the python language.  It then translates the python return to an object that R can handle, making a seamless transition between python and R. 
+
+***
+
+
+Using the reticulate package, scipy was imported into R and the finding peaks function was implemented in place of the old finding peaks function.  Also added to this function was a rough bound for the start and ending of each peak, as this was not part of the python function, but was part of the original pracema function.
+
+
+One problem with the python function was that, one couldn't specify how many peaks you would like to obtain from the return of the function;  This was a problem as, in some cases, the function would find up to 10 peaks thus making it difficult to differentiate what peaks are the actual traces. The following things were considered when troubleshooting this problem.  It should be noted here, that these peaks are found on the row sums of a horizontal(landscape orientation) image; This important, as a peak corresponds to the sum of a whole trace.
+
+* The height of all the peaks
+* Where should the peaks be
+* Variability for the user to pick how many peaks they are looking for
+
+Starting with the height of all the peaks, it was obvious to the human eye, that the peaks for the traces are the second highest set of peaks, close behind the timing marks;  The reason that the timing marks are the highest, is because they are straight and don't vary in width. Thus they are skinny and very tall (the two peaks far right side) **Figure: FindingPeaks3**
+
+
+```{r, out.width = '95%', echo = FALSE, fig.cap="FindingPeaks3 Chossing Correct Peaks"}
+knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/edgeFlareProblem.png")
+```
+```{r, out.width = '95%', echo = FALSE, fig.cap="FindingPeaks4 Scanning Flare"}
+knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/edgeFlareOrigionalImage.png")
+```
+
+
+Thus, the obvious thing to do would be to take the four highest peaks, and that should correspond to the two timing marks and the two traces.  A problem arose, due to flairs on the top and bottom of the image, including the text near the top of an image.  Because these are all peaks as well on the plot of row sums, sometimes when the scanning was done, there was on over exposed flare at the top/or bottom of the image **Figure: FindingPeaks4**, as one can see, this would look exactly like a timing line peak, just in the incorrect spot on the plot.  To fight this, an option to remove off part of the top and bottom of the images for consideration of peaks, these can be different numbers as you won't find a trace at the very top of an image, but you might find a timing line at the very bottom of an image.  After that was implemented, for convenience, as this was an exported function to the user, the ability to choose how many peaks were found was also added. (NOTE: if there was less then the number asked for, it won't re run. It will just return the peaks that were found.)
+
+```{r, out.width = '95%', echo = FALSE, fig.cap="FindingPeaks5 Final output New Peaks Function"}
+knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/edgeFlareFinalOutput.png")
+```
+
+The final output for this image with the flare problem was **Figure: FindingPeaks5**
+In conclusion we obtained, in my opinion a better finding peaks function, that was more applicable to the magneto project.
+
+
+## Image Processing
+
+Image processing is the idea of taking an image, and removing all of the noise we can, while still leaving the traces intact.  This is an important step, as without a good processed image, it becomes very difficult to create a good digitization of the traces.
+
+The old process, was as follows:
+*1) Check if the image is bright or not
+*2) If not bright, make all pixels above the 80% quantile 1(full white in colour) and make all other pixels black (0)
+    Then, do a Gaussian decomposition on the new image.
+*3) If bright, take the Gaussian decomposition first, then take all pixels above 90% quantile to be 1 and all other pixels to be set to black
+
+This worked well for most images, but the extreme images, very dark traces or very bright images, would be processed poorly and would not work with the rest of the digitization algorithm.  To try and improve our chances of digitizing a lot of these images, work was done to create a new algorithm; It goes as follows using functions from the OpenImageR package.
+
+*1) Check if an image is bright or not
+*2) Using delationErosion() with respective Kernel dimensions for bright or not bright, determined using random samples; This function, using the kernal and delation option, takes local bright spots, and over exposes them.  This allows us to enhances images that are darkened, and in some cases actually improving from original images. For bright images, this allowed for the darkening of over exposed parks, leaving a better trace.
+*3) Using image_thresholding() and a chosen threshold for bright and non bright images, we were able to remove the noise and still leave us with an image that was strictly one's or zeros.
+
+This new image processing was tested on 500 images and the results were, 94% were the same level or better then the old algorithm.  With this percentage, it was deemed that this would be better for our processing and was implemented into the program. See **Figure: Image Processing 1**,  **Figure: Image Processing 2**, **Figure: Image Processing 3** for an example of both the new and old algorithm compared to the original image.
+
+```{r, out.width = '95%', echo = FALSE, fig.cap="Image Processing Old Algorithm"}
+knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/oldBrightAlg.png")
+```
+```{r, out.width = '95%', echo = FALSE, fig.cap="Image Processing New Algorithm"}
+ knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/newBrightAlg.png")
+```
+```{r, out.width = '95%', echo = FALSE, fig.cap="Image Processing Origional Image"}
+ knitr::include_graphics("~/Magneto2020/ProjectSummary/ImagesForSummary/origionalImage.png")
+```
+
+# Magneto Package
+
+This section is dedicated to the package itself, and the components that make it up
+
+This was a big learning curve for me personally as I have never written a package before, and the specific way that you must document each part of your code is very important, especially if you are wanting to have the package available on CRAN. The first thing we should talk about is the different parts of a package and the package directory structure.
+
+### R
+
+This is the spot where all of the .R files are placed in the package; Usually these are separated into common functions.  For example, in the magneto package, there are main three main files.
+
+* userFunctions
+* checkFunctions
+* hiddenFunctions
+
+**userFunctions** Is strictly for functions that will be put into the NameSpace.  These are exported with Roxygen2 and are available to any user that loads the magneto package.
+
+**checkFunctions** Was made to store all functions that are used to check something about the data.  For example, a function to check if an image was horizontal or not; If the image was found to be horizontal, it was corrected and returned to the user.  Notice here that these functions do manipulate the data, but they don't do anything to further the digitization; They are just assumptions that need to be true to proceed with the digitization. 
+
+**hiddenFunctions** These are functions that further the digitization of an image, but don't have any reason to be available to the user.  Another property of these functions is, they usually don't have as much of a robust error checking, and trust that the programmer that is accessing them, knows what they are, and the specific reason that they were built.
+
+### Tests 
+
+Tests is a very important directory for any package, it holds all of ones unit tests and any data that is needed for the unit tests (more on theses later) to run, such as a specific data set, that will only work if all parts of the function work the way that it was intended to function.
+
+### Inst
+
+This is a directory that is specifically to specify to the user what they need to install to make the package work.  These are not library's, but external things such as python.  For the magneto package, the user needs to install python for the find_peaks function to work.
+
+### Name Space
+
+The Name Space holds all files (.R) scripts for example, that are exported to the user (they are user accessable, by anyone that loads the package).  This is automatically done by ROxygen2, when you start the documentation for the package.
+
+
+## ROxygen
+
+ROxygen2 is a package that is available through CRAN to aid with documentation of a package.  When one creates a package they have the option to use Roxygen for all the NameSpace documentation.  Once one has written a function, they can call the command for ROxygen and will get a layout for that specific function including the parameters that are passed into the function; Then all the programmer has to do is fill in the definition of the parameters, and the overall definition of the function.
+
+After these are filled out, the writer just hits document under the package tab, and the NameSpace is automatically corrected to include the new function if @export is included into the documentation for that specific function.
+
+## Unit Testing
+
+At the beginning of this project, I was familiar to the idea of unit testing, but never used it before.  The idea behind unit testing, is to create a function call, to test all exceptions that could possibly occur whilst you function is being used.  By doing this you obtain a better function, because you most likely thought of more possibilities for where your function might break; While, at the same time, have a permanent function call, that can be run after you make any change, to ensure that your function will run the same way it was designed before you made the change.  This becomes extremely valuable later, as you might change something that might break the function that you designed weeks ago.  Without the unit tests, you would never know that it broke.
+
+We used the TestThat package, which is implemented into the R environment for package development.  I would strongly encourage this to become a practice in any coding in the future as it builds a much more robust package.
+
+
+## Find Envelopes
+
+Now, there was a processed image, that was imported into the package from a specific date, the next step was to obtain rough bounds for the two traces.
+
+### The origional TIS method

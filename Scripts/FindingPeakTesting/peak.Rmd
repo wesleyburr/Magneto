@@ -7,7 +7,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 ```{r}
-rowSums <-readRDS("~/Magneto2020/rowSums19260902")
+rowSums <-readRDS("~/Magneto2020/rowSums.RDS")
 write.csv(rowSums, file = "~/Magneto2020/rowSums19260902.csv")
 ```
 
@@ -22,8 +22,8 @@ pracemaPeaks# dont like this because it is to arbetrary
 
 plot(rowSums, type = "l", col = "navy")
 points(x = pracemaPeaks[,2], y = pracemaPeaks[,1], pch = 20, col = "red")
-abline(v = c(pracemaPeaks[,3], pracemaPeaks[,4]), lty = 2, col = "green")
-abline(v = c(816+1, 1085+1, 1442+1, 1442+1, 1698+1), lty = 2, col = "red")
+#abline(v = c(pracemaPeaks[,3], pracemaPeaks[,4]), lty = 2, col = "green")
+#abline(v = c(816+1, 1085+1, 1442+1, 1442+1, 1698+1), lty = 2, col = "red")
 
 ```
 
