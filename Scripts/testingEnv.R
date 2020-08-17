@@ -3,7 +3,7 @@ library("zoo")
 library("rtiff")
 ImageTesting <- read.csv("~/Magneto2020/DataCSV/TODOBatch5.csv", header = TRUE, stringsAsFactors = FALSE)
 k <- 1
-#set.seed(1)
+set.seed(1)
 j <- sample(1:26000, size = 100, replace = FALSE)
 
 flag = FALSE
@@ -155,8 +155,8 @@ for (k in 1:40) {
     #   end <- imageSides$End
     # }
 
-    intersection <- tryCatch(.intersection_check(MatrixEnvelopes$TopEnvelope,
-                                                 MatrixEnvelopes$BottomUpperEnv, imageName), warning = function(w) w)
+    intersection <- tryCatch(.intersection_check(topEnv = MatrixEnvelopes$TopEnvelope,
+                                                bottomEnv = MatrixEnvelopes$BottomUpperEnv, imageName, rmAmount = 1000), warning = function(w) w)
     if (inherits(intersection, "warning")) {
       print(intersection)
     }
