@@ -50,7 +50,7 @@ for (k in 1:50) {
     rolledImage <- mean_roll_image(imageMatrix, topcut, bottomcut)
 
     MatrixEnvelopes <- find_envelopes(rolledImage = rolledImage, imageMatrix = imageMatrix,
-                                    bottomcut = bottomcut, returnType = "MatrixScaled", maxNoise = 250)
+                                    bottomcut = bottomcut, returnType = "MatrixScaled", maxNoise = 250, max_roc = 50)
     topEnvelopeMatrixScaled <- MatrixEnvelopes$TopEnvelope
     topLowerEnvelopeMatrixScaled <- MatrixEnvelopes$TopLowerEnvelope
     bottomUpperEnvelopeMatrixScaled <- MatrixEnvelopes$BottomUpperEnvelope
@@ -106,66 +106,66 @@ for (k in 1:50) {
 
 
 
-    createTrace <- function(traceMatrix, start, end, topEnv, bottomEnv, thresh = 5, MARange = 6, region = 2){
-      traceLine <- vector()
-      len = 4
-      for (i in start:end) {
-        column <- traceMatrix[,i]
-        trace <- which(column == 1)
-        if (length(trace) > 0) {
-          top <- trace[1]
-          bottom <- trace[length(trace)]
-          middleOfTrace <- round((top + bottom) / 2)
-        }
-        else {
-          middleOfTrace <- round((topEnv[i] + bottomEnv[i]) / 2)
-        }
-        traceLine <- append(traceLine, middleOfTrace)
-      }
-      for (j in 1:len) {
-        jumpsUp <- which(abs(diff(traceLine)) >= thresh) # to catch the spikes
-        if (length(jumpsUp) > 0 ) {
-          #browser()
-          jumpsUp <- jumpsUp + 1 # correction so we land on the jumps not the one before the jump
-          for (i in jumpsUp) {
-            if (i < MARange) {
-              traceLine[i] <- mean(traceLine[0:(i + MARange)]) #MA smoothing
-            }
-            else if ((i + MARange) > length(traceLine)) {
-              traceLine[i] <- mean(traceLine[(i - MARange):length(traceLine)]) #MA smoothing
-            }
-            else{
-              traceLine[(i - region):(i + region)] <- mean(traceLine[(i - region - MARange):(i + region + MARange)]) #MA smoothing on the region
-            }
-          }
-        }
-      }
-      # jumpsDown <- which(diff(traceLine) <= -thresh)
-      # if (length(jumpsDown) > 0 ) {
-      #   browser()
-      #   for (i in jumpsDown) {
-      #     if (i < MARange) {
-      #       traceLine[i] <- mean(traceLine[0:(i + MARange)]) #MA smoothing
-      #     }
-      #     else if ((i + MARange) > length(traceLine)) {
-      #       traceLine[i] <- mean(traceLine[(i - MARange):length(traceLine)]) #MA smoothing
-      #     }
-      #     else{
-      #       traceLine[(i - region):(i + region)] <- mean(traceLine[(i - region - MARange):(i + region + MARange)]) #MA smoothing on the region
-      #     }
-      #   }
-      # }
-      return(traceLine) # no jumps, just returning the line no corrections
-    }
+    # create_trace <- function(traceMatrix, start, end, topEnv, bottomEnv, thresh = 5, MARange = 6, region = 2){
+    #   traceLine <- vector()
+    #   len = 4
+    #   for (i in start:end) {
+    #     column <- traceMatrix[,i]
+    #     trace <- which(column == 1)
+    #     if (length(trace) > 0) {
+    #       top <- trace[1]
+    #       bottom <- trace[length(trace)]
+    #       middleOfTrace <- round((top + bottom) / 2)
+    #     }
+    #     else {
+    #       middleOfTrace <- round((topEnv[i] + bottomEnv[i]) / 2)
+    #     }
+    #     traceLine <- append(traceLine, middleOfTrace)
+    #   }
+    #   for (j in 1:len) {
+    #     jumpsUp <- which(abs(diff(traceLine)) >= thresh) # to catch the spikes
+    #     if (length(jumpsUp) > 0 ) {
+    #       #browser()
+    #       jumpsUp <- jumpsUp + 1 # correction so we land on the jumps not the one before the jump
+    #       for (i in jumpsUp) {
+    #         if (i < MARange) {
+    #           traceLine[i] <- mean(traceLine[0:(i + MARange)]) #MA smoothing
+    #         }
+    #         else if ((i + MARange) > length(traceLine)) {
+    #           traceLine[i] <- mean(traceLine[(i - MARange):length(traceLine)]) #MA smoothing
+    #         }
+    #         else{
+    #           traceLine[(i - region):(i + region)] <- mean(traceLine[(i - region - MARange):(i + region + MARange)]) #MA smoothing on the region
+    #         }
+    #       }
+    #     }
+    #   }
+    #   # jumpsDown <- which(diff(traceLine) <= -thresh)
+    #   # if (length(jumpsDown) > 0 ) {
+    #   #   browser()
+    #   #   for (i in jumpsDown) {
+    #   #     if (i < MARange) {
+    #   #       traceLine[i] <- mean(traceLine[0:(i + MARange)]) #MA smoothing
+    #   #     }
+    #   #     else if ((i + MARange) > length(traceLine)) {
+    #   #       traceLine[i] <- mean(traceLine[(i - MARange):length(traceLine)]) #MA smoothing
+    #   #     }
+    #   #     else{
+    #   #       traceLine[(i - region):(i + region)] <- mean(traceLine[(i - region - MARange):(i + region + MARange)]) #MA smoothing on the region
+    #   #     }
+    #   #   }
+    #   # }
+    #   return(traceLine) # no jumps, just returning the line no corrections
+    # }
 
     #there are still jumps in the line, see why this is? ( might be upside down aswell ..)
-    topTrace <- createTrace(topTraceMatrix, TopStartsEnds$Start, TopStartsEnds$End,
+    topTrace <- create_trace(topTraceMatrix, TopStartsEnds$Start, TopStartsEnds$End,
                             topEnvelopeMatrixScaled, topLowerEnvelopeMatrixScaled)
-    bottomTrace <- createTrace(bottomTraceMatrix, BottomStartsEnds$Start, BottomStartsEnds$End,
+    bottomTrace <- create_trace(bottomTraceMatrix, BottomStartsEnds$Start, BottomStartsEnds$End,
                                bottomUpperEnvelopeMatrixScaled, bottomEnvelopeMatrixScaled)
 
     plotEnvelopes <- find_envelopes(rolledImage = rolledImage, imageMatrix = imageMatrix,
-                                    bottomcut = bottomcut, returnType = "PlottingScaled", maxNoise = 250)
+                                    bottomcut = bottomcut, returnType = "PlottingScaled", maxNoise = 100, max_roc = 25)
 
     # Open a png file
     png(paste0("~/Magneto2020/plottingTesting/", imageName, ".png"))
@@ -195,11 +195,11 @@ for (k in 1:50) {
 
     png(paste0("~/Magneto2020/plottingTesting/", imageName, "-BottomTrace", ".png"))
     # 2. Create a plot
-    suppressWarnings(plot(bottomTraceMatrix))
-    abline(v = c(BottomStartsEnds$StartPoint, BottomStartsEnds$EndPoint), col = "red")
-    lines(plotEnvelopes$BottomUpperEnvelope, col = "green")
-    lines(plotEnvelopes$BottomEnvelope, col = "yellow")
-    abline(v = BottomStartsEnds, col = "orange")
+    suppressWarnings(plot(bottomTraceMatrix[,BottomStartsEnds$Start:BottomStartsEnds$End]))
+    #abline(v = c(BottomStartsEnds$StartPoint, BottomStartsEnds$EndPoint), col = "red")
+    lines(plotEnvelopes$BottomUpperEnvelope[BottomStartsEnds$Start:BottomStartsEnds$End], col = "green")
+    lines(plotEnvelopes$BottomEnvelope[BottomStartsEnds$Start:BottomStartsEnds$End], col = "yellow")
+    #abline(v = BottomStartsEnds, col = "orange")
     # Close the pdf file
     dev.off()
 
