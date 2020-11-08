@@ -464,3 +464,196 @@ topTraceMatrix <- apply(imageMatrix, MARGIN = 2, FUN = function(x){
 Need to double for loop to make all other parts black, then we can draw a line between the two lines, up or down resp
 with this we should have two seperated traces that will be easy to get the final bounds, because there will be a clear
 part where the trace gaps to be the number at the end of the trace!
+
+
+
+```{r}
+TIS <- function(imageName, fileLoc, pathToWorkingDir = "~/", TODOCSV,
+                HDVcheck = FALSE, plotPNG = TRUE,
+                trimAmountTop = 100,
+                trimAmountBottom = 50, beta0 = -2.774327,
+                beta1 = 51.91687, cutoffProbability = 0.5,
+                NADefault = 0, FilterBright = c(13, 13),
+                FilterNonBright = c(8, 8),
+                methodBright = "delation",
+                methodNonBright = "delation",
+                thresholdBright = 0.8,
+                thresholdNonBright = 0.5, trimAmountLeft = 2, trimAmountRight = 2,
+                percentFromEdge = 2, percentEdgeForLeft = 25,
+                cutPercentage = 2, shortestAllowedSeqOfZeros = 25,
+                minDistance = 50, thresholdHeight = 200,
+                thresholdDistance = 250, threshCutImage = 500,
+                sepDist = 10, max_roc = 35, maxNoise = 250,
+                envelopeStartEndThreshold = 300, intersetionRemoveAmount = 1000,
+                CreateTraceThreshold = 5, MARange = 6, region = 2,
+                loopNumber = 4, spikeThreshold = 50, rollFill = "extend", k = 40){
+  traceWarnings <- vector()
+  typeCheck <- NULL # if you aren't using the HDV check
+  
+  if (isTRUE(HDVcheck)) {
+  # HDV Checking for Magnetograms ----------------------------------------------
+    typeCheck <- tryCatch(.hdv_check(imageName), warning = function(w) w)
+  }
+  if (inherits(typeCheck, "warning")) {
+    print(typeCheck)
+    traceWarnings <- append(traceWarnings, vector)
+    flag = TRUE #wont process, but will put a plot out into the pwd
+  }
+  else {
+  # Process The Image ----------------------------------------------------------
+    
+    imageMatrix <- import_process_image(imageName = imageName, file_loc = fileLoc,
+                                        trimAmountTop = trimAmountTop,
+                                        trimAmountBottom = trimAmountBottom, beta0 = beta0,
+                                        beta1 = beta1, cutoffProbability = cutoffProbability,
+                                        NADefault = NADefault, FilterBright = FilterBright,
+                                        FilterNonBright = FilterNonBright,
+                                        methodBright = methodBright,
+                                        methodNonBright = methodNonBright,
+                                        thresholdBright = thresholdBright,
+                                        thresholdNonBright = thresholdNonBright)
+    imageSideCut <- .trim_Sides(imageMatrix, trimAmountLeft = trimAmountLeft, 
+                                trimAmountRight = trimAmountRight) 
+    imageCut <- .trim_top_bottom(imageSideCut, trimAmountTop = trimAmountTop, 
+                                 trimAmountBottom = trimAmountBottom) 
+    #takes off the usual flair spots
+  
+  # Find the Top and Bottom Cut for the Image ----------------------------------- 
+    
+    topBottomCuts <- find_cuts(imageCut, percentFromEdge = percentFromEdge, 
+                               percentEdgeForLeft = percentEdgeForLeft, 
+                               cutPercentage = cutPercentage, 
+                               shortestAllowedSeqOfZeros = shortestAllowedSeqOfZeros)
+    topCut <- topBottomCuts$TopCut
+    bottomCut <- topBottomCuts$BottomCut
+    if (inherits(topCut, "warning")) {
+      print(topBottomCuts$TopCut)
+      traceWarnings <- append(traceWarnings, topCut)
+      flag = TRUE #wont process, but will put a plot out into the pwd
+      topCut <- 0
+    }
+    if (inherits(bottomCut, "warning")) {
+      print(topBottomCuts$BottomCut)
+      traceWarnings <- append(traceWarnings, bottomCut)
+      flag = TRUE #wont process, but will put a plot out into the pwd
+      bottomCut <- nrow(imageCut)
+    }
+  }
+  
+  if (isFALSE(flag)) {
+  # Check for a Triple Set of Traces -------------------------------------------
+    tripleBool <- .triple_check(imageMatrix = imageCut, topCut = topcut, 
+                                bottomCut = bottomcut, minDistance = minDistance,
+                                percentFromEdge = percentFromEdge, thresholdHeight = thresholdHeight,
+                                thresholdDistance = thresholdDistance, threshCutImage = threshCutImage) #checking for triple trace images
+    if (isTRUE(tripleBool)) {
+      print(paste0("possible triple found! ", imageName))
+    }
+  # No Errors Found, Creating The Actual Traces --------------------------------
+    else {
+  
+  # Creating Envelopes ---------------------------------------------------------
+      rolledImage <- mean_roll_image(imageMatrix = imageCut, topcut = topCut,
+                                     bottomcut =  bottomCut, fill = rollFill, k = k) #to get a more consistent image
+      #gets rid of small gaps
+      matrixEnvelopes <- find_envelopes(imageMatrix = imageCut, rolledImage = rolledImage, bottomCut = bottomCut,
+                                        returnType = "MatrixScaled", sepDist = sepDist,
+                                        max_roc = max_roc, maxNoise = maxNoise)
+      
+      traceMatrices <- isolate_traces(imageCut, topEnvelope = matrixEnvelopes$TopEnvelope,
+                     topLowerEnvelope = matrixEnvelopes$TopLowerEnvelope,
+                     bottomUpperEnvelope = matrixEnvelopes$BottomUpperEnvelope,
+                     bottomEnvelope = matrixEnvelopes$BottomEnvelope)
+      
+      TopStartsEnds <- .env_start_end(traceMatrix = traceMatrices$TopTraceMatrix, 
+                                        returnMatrix = FALSE, thresh = envelopeStartEndThreshold)
+      BottomStartsEnds <- .env_start_end(traceMatrix = traceMatrices$BottomTraceMatrix,
+                                           returnMatrix = FALSE, thresh = envelopeStartEndThreshold)
+      
+  # Checking Envelopes for Intersections ---------------------------------------    
+      
+      intersection <- tryCatch(.intersection_check(topEnv = matrixEnvelopes$TopLowerEnvelope,
+                                                 bottomEnv = matrixEnvelopes$BottomUpperEnv,
+                                                 imageName, rmAmount = intersetionRemoveAmount),
+                                                 warning = function(w) w)
+      if (inherits(intersection, "warning")) {
+        print(intersection)
+        traceWarnings <- append(traceWarnings, intersection)
+      }
+      
+  # Creating the Two Traces ----------------------------------------------------   
+      
+      topTrace <- create_trace(traceMatrix = traceMatrices$TopTraceMatrix, 
+                               start = TopStartsEnds$Start,
+                               end = TopStartsEnds$End,
+                               topEnv = matrixEnvelopes$TopEnvelope,
+                               bottomEnv =  matrixEnvelopes$TopLowerEnvelope,
+                               thresh = CreateTraceThreshold,
+                               MARange = MARange, region = region, loopNumber = loopNumber)
+      bottomTrace <- create_trace(traceMatrix = traceMatrices$BottomTraceMatrix,
+                                  start =  BottomStartsEnds$Start,
+                                  end =  BottomStartsEnds$End,
+                                  topEnv = matrixEnvelopes$BottomUpperEnvelope,
+                                  bottomEnv = matrixEnvelopes$BottomEnvelope,
+                                  thresh = CreateTraceThreshold,
+                                  MARange = MARange, region = region, 
+                                  loopNumber = loopNumber)
+      
+  # Checking for spikes in the traces ------------------------------------------
+      topTraceSpikeCheck <- tryCatch(.spike_check(topTrace, spikeThreshold = spikeThreshold))
+      bottomTraceSpikeCheck <- tryCatch(.spike_check(bottomTrace, spikeThreshold = spikeThreshold))
+      if (inherits(topTraceSpikeCheck, "warning") || inherits(bottomTraceSpikeCheck, "warning")) {
+        if (!is.null(topTraceSpikeCheck)) {
+          print(topTraceSpikeCheck)
+          traceWarnings <- append(traceWarnings, topTraceSpikeCheck)
+        }
+        if (!is.null(bottomTraceSpikeCheck)) {
+          print(bottomTraceSpikeCheck)
+          traceWarnings <- append(traceWarnings, bottomTraceSpikeCheck)
+        }
+      }
+      
+    }
+    
+  }
+  # Plotting (if applicable) ---------------------------------------------------
+  if (isTRUE(plotPNG) & isFALSE(flag)) {
+    plot_success(imageMatrix = imageCut, rolledImage = rolledImage, topCut = topCut,
+                bottomCut = bottomCut, topStartEnds = TopStartsEnds, bottomStartEnds = BottomStartsEnds,
+                topTrace = topTrace, bottomTrace = bottomTrace, maxNoise = maxNoise, max_roc = max_roc,
+                sepDist = sepDist, pathToWorkingDir = pathToWorkingDir, imageName = imageName)
+    
+    
+  }
+  if (isTRUE(plotPNG)) {
+    plot_with_warnings(imageMatrix = imageCut, topCut = topCut, bottomCut = bottomCut
+                       ,pathToWorkingDir = pathToWorkingDir, imageName = imageName)
+  }
+  totalReturn <- list(ImageCutMatrix = imageCut, RolledImage = rolledImage, TopTraceMatrix = topTrace,
+                      TopTraceStartEnds = list(Start = TopStartsEnds$Start, End = TopStartsEnds$End),
+                      BottomTraceMatrix = bottomTrace,
+                      BottomTraceStartEnds = list(Start = BottomStartsEnds$Start, End = BottomStartsEnds$End),
+                      Cuts = list(TopCut = topCut, BottomCut = bottomCut),
+                      Warnings = traceWarnings)
+  return(totalReturn)
+}
+```
+
+```{r}
+
+```
+
+```{r}
+plot_with_warnings <- function(imageMatrix, topCut, bottomCut, pathToWorkingDir = "~/"){
+  
+  png(paste0(pathToWorkingDir, imageName, "failProcess", ".png"))
+    # 2. Create a plot
+    suppressWarnings(plot(imageMatrix))
+    abline(h = (nrow(imageMatrix) - topCut), col = "green")
+    abline(h = (nrow(imageMatrix) - bottomCut), col = "green")
+    text("This Isn't Processed", x = 3000, y = 1500, col = "orange")
+    # Close the png file
+    dev.off()
+}
+```
+
